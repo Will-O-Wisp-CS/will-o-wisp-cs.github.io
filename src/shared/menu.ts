@@ -12,8 +12,8 @@ export const SITE_PAGES: { id: PageId; href: string; label: string }[] = [
 
 /** サイト外のリンク（ページ一覧の下に区切って並べ、新しいタブで開く） */
 export const EXTERNAL_LINKS: { href: string; label: string }[] = [
-  { href: 'https://sugatool.nojigikucs.com/events/b3f717c2-2ed5-44fa-8b97-b2aaa9d86593/entries', label: 'マッチングサイト（午前）' },
-  { href: 'https://sugatool.nojigikucs.com/events/3cb0381b-2212-453d-992f-11884c86f6f1/entries', label: 'マッチングサイト（午後）' },
+  { href: 'https://sugatool.nojigikucs.com/events/19ae5c13-ae91-4c0d-abf2-81e6db52ebce/entries', label: 'マッチングサイト（午前）' },
+  { href: 'https://sugatool.nojigikucs.com/events/c8a0106d-f727-4c4d-8183-df3156537635/entries', label: 'マッチングサイト（午後）' },
 ];
 
 /** 上部の帯（.site-header）の右端にハンバーガーボタンとページメニューを付ける */
