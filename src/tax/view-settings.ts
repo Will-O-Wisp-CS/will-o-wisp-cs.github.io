@@ -29,7 +29,7 @@ export function render(root: HTMLElement, app: App): void {
     if (!parsedFee.ok) errors.fee = parsedFee.message;
     showErrors(fields, errors);
     if (Object.keys(errors).length > 0 || !parsedFee.ok) return;
-    void app.saveSettings({ ...settings, startDate: startDate.value, defaultFee: parsedFee.value });
+    void app.saveSettings((s) => ({ ...s, startDate: startDate.value, defaultFee: parsedFee.value }));
   });
   basic.append(form);
 
@@ -37,9 +37,11 @@ export function render(root: HTMLElement, app: App): void {
   order.append(el('h2', '経費科目の並び', 'card-title'));
   const list = el('ul', '', 'tax-list');
   const move = (i: number, d: number) => {
-    const next = [...settings.expenseOrder];
-    [next[i], next[i + d]] = [next[i + d], next[i]];
-    void app.saveSettings({ ...settings, expenseOrder: next as AccountId[] });
+    void app.saveSettings((s) => {
+      const next = [...s.expenseOrder];
+      [next[i], next[i + d]] = [next[i + d], next[i]];
+      return { ...s, expenseOrder: next as AccountId[] };
+    });
   };
   settings.expenseOrder.forEach((id, i) => {
     const item = el('li', '', 'tax-item');
@@ -61,11 +63,15 @@ export function render(root: HTMLElement, app: App): void {
 
   const opening = el('section', '', 'card');
   opening.append(el('h2', `${ledger.year}年の期首残高`, 'card-title'));
-  if (ledger.transactions.length > 0) {
+  if (app.openingLocked) {
     opening.append(
-      el('p', `現金 ${ledger.opening.cash.toLocaleString()}円 / 普通預金 ${ledger.opening.bank.toLocaleString()}円（取引があるため変更できません）`, 'rules-text'),
+      el('p', `現金 ${ledger.opening.cash.toLocaleString()}円 / 普通預金 ${ledger.opening.bank.toLocaleString()}円`, 'rules-text'),
+      el('p', `${ledger.year - 1}年の帳簿の期末残高から自動で決まります`, 'note'),
     );
   } else {
+    if (ledger.transactions.length > 0) {
+      opening.append(el('p', '取引の入力後に変えると、決算書の期首の数字が変わります。最初の年の入力ミスを直すときだけ変えてください', 'note'));
+    }
     const oform = el('form', '', 'tax-form') as HTMLFormElement;
     oform.noValidate = true;
     const cash = input('text', String(ledger.opening.cash), { inputmode: 'numeric' });
@@ -83,7 +89,7 @@ export function render(root: HTMLElement, app: App): void {
       };
       const next = { cash: amount(cash.value, 'cash', '現金'), bank: amount(bank.value, 'bank', '普通預金') };
       showErrors(ofields, errors);
-      if (Object.keys(errors).length === 0) void app.save({ ...ledger, opening: next });
+      if (Object.keys(errors).length === 0) void app.save((l) => ({ ...l, opening: next }));
     });
     opening.append(oform);
   }

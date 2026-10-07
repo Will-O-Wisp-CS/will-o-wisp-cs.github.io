@@ -10,9 +10,15 @@ export type App = {
   ledger: Loaded<Ledger>;
   /** 入力タブのフォーム。保存に成功したら入力画面側で null に戻す */
   inputContext: InputContext;
-  /** 帳簿を保存して再描画する。失敗したらメッセージを出して false（入力内容は消さない） */
-  save(ledger: Ledger): Promise<boolean>;
-  saveSettings(settings: Settings): Promise<boolean>;
+  /** 前年の帳簿があり、期首残高は前年の期末から自動で決まる */
+  openingLocked: boolean;
+  /**
+   * 最新の帳簿に update をかけて保存し、再描画する。保存は1つずつ順に行う。
+   * 失敗したらメッセージを出して false（入力内容は消さない）
+   */
+  save(update: (ledger: Ledger) => Ledger): Promise<boolean>;
+  /** failureNote を渡すと、失敗してもエラーにせずその文を出す（ついでの更新用） */
+  saveSettings(update: (settings: Settings) => Settings, failureNote?: string): Promise<boolean>;
   /** 入力タブを開き、その開催の売上フォームにする */
   openSaleForm(eventId: string): void;
   /** 入力タブで取引を編集する */

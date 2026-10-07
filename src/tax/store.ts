@@ -18,6 +18,9 @@ export class ConflictError extends Error {
 
 export type Loaded<T> = { data: T; fileId: string; version: string };
 
+/** 読み込んだ帳簿。openingChanged は前年の期末に合わせて期首残高を直した（まだ保存していない）とき true */
+export type LoadedLedger = Loaded<Ledger> & { openingChanged: boolean };
+
 let rootId: string | null = null;
 const folderIds = new Map<string, string>();
 
@@ -59,19 +62,40 @@ export async function saveSettings(s: Loaded<Settings>): Promise<Loaded<Settings
   return { ...s, version: updated.version };
 }
 
-/** その年の帳簿。なければ前年の期末残高から作る。前年もなければ期首残高の入力が必要 */
-export async function loadLedger(year: number): Promise<Loaded<Ledger> | { needsOpening: true }> {
+/**
+ * その年の帳簿。前年の帳簿があれば、期首残高は読み込むたびに前年の期末に合わせる
+ * （年が明けてから前年分を入力しても翌年の期首がずれないように）。
+ * なければ前年の期末残高から作る。前年もなければ期首残高の入力が必要
+ */
+export async function loadLedger(year: number): Promise<LoadedLedger | { needsOpening: true }> {
   const parent = await root();
+  const prevFile = await drive.findFile(parent, ledgerName(year - 1));
+  const prevOpening = prevFile ? nextOpening(await drive.readJson<Ledger>(prevFile.id)) : null;
   const file = await drive.findFile(parent, ledgerName(year));
-  if (file) return { data: await drive.readJson<Ledger>(file.id), fileId: file.id, version: file.version };
-  const prev = await drive.findFile(parent, ledgerName(year - 1));
-  if (!prev) return { needsOpening: true };
-  return createLedger(year, nextOpening(await drive.readJson<Ledger>(prev.id)));
+  if (!file) {
+    if (!prevOpening) return { needsOpening: true };
+    return { ...(await createLedger(year, prevOpening)), openingChanged: false };
+  }
+  const data = await drive.readJson<Ledger>(file.id);
+  const loaded = { data, fileId: file.id, version: file.version };
+  if (!prevOpening || (prevOpening.cash === data.opening.cash && prevOpening.bank === data.opening.bank)) {
+    return { ...loaded, openingChanged: false };
+  }
+  return { ...loaded, data: { ...data, opening: prevOpening }, openingChanged: true };
 }
 
+/** 前年の帳簿があるか（あれば期首残高は自動で決まり、手で変えない） */
+export async function hasPreviousLedger(year: number): Promise<boolean> {
+  return (await drive.findFile(await root(), ledgerName(year - 1))) !== null;
+}
+
+/** 帳簿を作る。同じ年の帳簿がすでにあれば（再試行・別の端末）作らずにそれを使う */
 export async function createLedger(year: number, opening: { cash: number; bank: number }): Promise<Loaded<Ledger>> {
+  const parent = await root();
+  const existing = await drive.findFile(parent, ledgerName(year));
+  if (existing) return { data: await drive.readJson<Ledger>(existing.id), fileId: existing.id, version: existing.version };
   const data: Ledger = { year, opening, events: [], transactions: [] };
-  const created = await drive.createJson(await root(), ledgerName(year), data);
+  const created = await drive.createJson(parent, ledgerName(year), data);
   return { data, fileId: created.id, version: created.version };
 }
 

@@ -69,6 +69,5 @@ export function eventLabel(e: LedgerEvent): string {
 }
 
 async function setCancelled(app: App, id: string, cancelled: boolean): Promise<void> {
-  const ledger = app.ledger.data;
-  await app.save({ ...ledger, events: ledger.events.map((e) => (e.id === id ? { ...e, cancelled } : e)) });
+  await app.save((ledger) => ({ ...ledger, events: ledger.events.map((e) => (e.id === id ? { ...e, cancelled } : e)) }));
 }

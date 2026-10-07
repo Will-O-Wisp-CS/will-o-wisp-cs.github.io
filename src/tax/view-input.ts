@@ -1,6 +1,6 @@
 import { el } from '../shared/dom';
 import type { App } from './app';
-import { fileUrl } from './drive';
+import { ensureFresh, fileUrl } from './drive';
 import { todayJst } from './format';
 import { defaultSaleAmount, parseExpense, parseSale, parseTransfer, type TxDraft, type TxResult } from './journal';
 import { ACCOUNTS, accountLabel, PAYMENT_ACCOUNTS, PAYMENT_LABELS, type AccountId, type Transaction } from './ledger';
@@ -245,6 +245,8 @@ function receiptPicker(form: HTMLFormElement, editing: Transaction | undefined):
 }
 
 async function save(app: App, draft: TxDraft, editing: Transaction | undefined, files: File[]): Promise<void> {
+  // 画像の縮小などで時間が経つ前（クリック直後）にトークンの取り直しを始める
+  const fresh = ensureFresh();
   const ledger = app.ledger.data;
   const tx: Transaction = {
     ...draft,
@@ -253,6 +255,7 @@ async function save(app: App, draft: TxDraft, editing: Transaction | undefined, 
     updatedAt: new Date().toISOString(),
   };
   try {
+    await fresh;
     const renamed =
       editing && (editing.date !== tx.date || editing.amount !== tx.amount || editing.counterparty !== tx.counterparty);
     if (renamed && tx.receipts.length > 0) tx.receipts = await renameReceipts(tx);
@@ -261,25 +264,28 @@ async function save(app: App, draft: TxDraft, editing: Transaction | undefined, 
     app.fail(e);
     return;
   }
-  const transactions = editing ? ledger.transactions.map((t) => (t.id === tx.id ? tx : t)) : [...ledger.transactions, tx];
   const context = app.inputContext;
   app.inputContext = null;
-  const ok = await app.save({ ...ledger, transactions });
+  const ok = await app.save((latest) => ({
+    ...latest,
+    transactions: editing ? latest.transactions.map((t) => (t.id === tx.id ? tx : t)) : [...latest.transactions, tx],
+  }));
   if (!ok) {
     app.inputContext = context;
     return;
   }
-  if (tx.kind === 'sale' && tx.fee && tx.fee !== app.settings.data.defaultFee) {
-    await app.saveSettings({ ...app.settings.data, defaultFee: tx.fee });
+  const fee = tx.fee;
+  if (tx.kind === 'sale' && fee && fee !== app.settings.data.defaultFee) {
+    // 売上は保存済み。ここで失敗しても売上の入れ直しを促さない
+    await app.saveSettings((s) => ({ ...s, defaultFee: fee }), '売上は保存しました（参加費の初期値は更新できませんでした）');
   }
 }
 
 async function remove(app: App, tx: Transaction): Promise<void> {
   const note = tx.receipts.length > 0 ? `\n領収書 ${tx.receipts.length} 件はドライブのゴミ箱に移します。` : '';
   if (!confirm(`この取引を削除しますか？${note}`)) return;
-  const ledger = app.ledger.data;
   app.inputContext = null;
-  const ok = await app.save({ ...ledger, transactions: ledger.transactions.filter((t) => t.id !== tx.id) });
+  const ok = await app.save((ledger) => ({ ...ledger, transactions: ledger.transactions.filter((t) => t.id !== tx.id) }));
   if (!ok) {
     app.inputContext = { mode: 'edit', id: tx.id };
     return;

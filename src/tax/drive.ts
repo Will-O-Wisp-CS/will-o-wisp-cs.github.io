@@ -23,6 +23,8 @@ let client: google.accounts.oauth2.TokenClient | null = null;
 let token: string | null = null;
 let expiresAt = 0;
 let pending: { resolve: () => void; reject: (e: Error) => void } | null = null;
+/** 取り直し中のトークン要求（同時に呼ばれても1回にまとめる） */
+let inflight: Promise<void> | null = null;
 
 /** Google でログインして drive.file のトークンを取る */
 export async function signIn(clientId: string): Promise<void> {
@@ -63,16 +65,27 @@ export function isSignedIn(): boolean {
 }
 
 function requestToken(): Promise<void> {
-  return new Promise((resolve, reject) => {
+  inflight ??= new Promise<void>((resolve, reject) => {
     pending = { resolve, reject };
     client!.requestAccessToken({ prompt: '' });
+  }).finally(() => {
+    inflight = null;
   });
+  return inflight;
 }
 
-/** 期限まで60秒を切っていたら取り直す */
+/**
+ * 期限まで60秒を切っていたら取り直す。取り直しはポップアップになることがあり、
+ * ブラウザはクリック直後でないと止めるので、保存ボタンの処理では await より前にこれを呼ぶ
+ */
+export function ensureFresh(): Promise<void> {
+  if (!client) return Promise.reject(new DriveError(401, 'ログインしてください'));
+  if (!token || Date.now() > expiresAt - 60_000) return requestToken();
+  return Promise.resolve();
+}
+
 async function ensureToken(): Promise<string> {
-  if (!client) throw new DriveError(401, 'ログインしてください');
-  if (!token || Date.now() > expiresAt - 60_000) await requestToken();
+  await ensureFresh();
   return token!;
 }
 
@@ -95,7 +108,8 @@ function quote(value: string): string {
 export async function findFile(parentId: string | null, name: string, folder = false): Promise<DriveFile | null> {
   const q = [`name = ${quote(name)}`, `${quote(parentId ?? 'root')} in parents`, 'trashed = false'];
   if (folder) q.push(`mimeType = '${FOLDER}'`);
-  const params = new URLSearchParams({ q: q.join(' and '), fields: `files(${FIELDS})`, spaces: 'drive' });
+  // 同名のファイルが複数あっても毎回同じもの（一番古いもの）を使う
+  const params = new URLSearchParams({ q: q.join(' and '), fields: `files(${FIELDS})`, spaces: 'drive', orderBy: 'createdTime' });
   const res = await callJson<{ files: DriveFile[] }>(`${API}/files?${params}`);
   return res.files[0] ?? null;
 }

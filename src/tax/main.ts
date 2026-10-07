@@ -10,6 +10,7 @@ import * as drive from './drive';
 import { todayJst } from './format';
 import { parseAmount } from './journal';
 import type { Ledger, Settings } from './ledger';
+import { createQueue } from './queue';
 import { mergeEvents } from './reminder';
 import * as store from './store';
 import { button, field, input, showErrors } from './ui';
@@ -36,6 +37,8 @@ const schedule = (data as { events: ScheduleEvent[] }).events;
 mountSiteMenu('tax');
 
 let app: App | null = null;
+/** 帳簿・設定の保存は1つずつ順に行う（重なると古い内容で上書きしてしまうため） */
+const serial = createQueue();
 let tab: Tab = 'home';
 
 function showStatus(message: string, kind: 'info' | 'error' = 'info', action?: HTMLButtonElement): void {
@@ -110,7 +113,7 @@ async function loadYear(year: number): Promise<void> {
       showStatus('');
       return;
     }
-    await start(settings, loaded);
+    await start(settings, loaded, await store.hasPreviousLedger(year));
   } catch (e) {
     showError(e);
   }
@@ -151,9 +154,11 @@ function renderOpening(year: number, settings: store.Loaded<Settings>): void {
     submit.disabled = true;
     void (async () => {
       try {
+        // 再試行でも重複しないよう、帳簿は既存を使い、設定は読み直してから保存する
         const ledger = await store.createLedger(year, opening);
-        const saved = await store.saveSettings({ ...settings, data: { ...settings.data, startDate: startDate.value } });
-        await start(saved, ledger);
+        const latest = await store.loadSettings(todayJst(new Date()));
+        const saved = await store.saveSettings({ ...latest, data: { ...latest.data, startDate: startDate.value } });
+        await start(saved, { ...ledger, openingChanged: false }, false);
       } catch (e) {
         submit.disabled = false;
         showError(e);
@@ -165,38 +170,50 @@ function renderOpening(year: number, settings: store.Loaded<Settings>): void {
 }
 
 /** 大会スケジュールの開催を取り込んでから画面を出す */
-async function start(settings: store.Loaded<Settings>, ledger: store.Loaded<Ledger>): Promise<void> {
+async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedger, openingLocked: boolean): Promise<void> {
+  let ledger: store.Loaded<Ledger> = loaded;
   const merged = mergeEvents(ledger.data, schedule);
-  if (JSON.stringify(merged.events) !== JSON.stringify(ledger.data.events)) {
+  if (loaded.openingChanged || JSON.stringify(merged.events) !== JSON.stringify(ledger.data.events)) {
     ledger = await store.saveLedger({ ...ledger, data: merged });
   }
   app = {
     settings,
     ledger,
+    openingLocked,
     inputContext: null,
-    save: async (next) => {
-      showStatus('保存しています…');
-      try {
-        app!.ledger = await store.saveLedger({ ...app!.ledger, data: next });
-        showStatus('保存しました');
-        render();
-        return true;
-      } catch (e) {
-        showError(e);
-        return false;
-      }
+    save: (update) => {
+      // トークンの取り直しがクリック直後に始まるよう、await より前に呼ぶ
+      const fresh = drive.ensureFresh();
+      return serial(async () => {
+        showStatus('保存しています…');
+        try {
+          await fresh;
+          app!.ledger = await store.saveLedger({ ...app!.ledger, data: update(app!.ledger.data) });
+          showStatus('保存しました');
+          render();
+          return true;
+        } catch (e) {
+          showError(e);
+          return false;
+        }
+      });
     },
-    saveSettings: async (next) => {
-      showStatus('保存しています…');
-      try {
-        app!.settings = await store.saveSettings({ ...app!.settings, data: next });
-        showStatus('保存しました');
-        render();
-        return true;
-      } catch (e) {
-        showError(e);
-        return false;
-      }
+    saveSettings: (update, failureNote) => {
+      const fresh = drive.ensureFresh();
+      return serial(async () => {
+        if (!failureNote) showStatus('保存しています…');
+        try {
+          await fresh;
+          app!.settings = await store.saveSettings({ ...app!.settings, data: update(app!.settings.data) });
+          if (!failureNote) showStatus('保存しました');
+          render();
+          return true;
+        } catch (e) {
+          if (failureNote) showStatus(failureNote);
+          else showError(e);
+          return false;
+        }
+      });
     },
     openSaleForm: (eventId) => {
       app!.inputContext = { mode: 'sale', eventId };
@@ -211,7 +228,7 @@ async function start(settings: store.Loaded<Settings>, ledger: store.Loaded<Ledg
     notify: (message) => showStatus(message),
     fail: showError,
   };
-  showStatus('');
+  showStatus(loaded.openingChanged ? `期首残高を${loaded.data.year - 1}年の期末に合わせました` : '');
   renderTabs();
   render();
 }
