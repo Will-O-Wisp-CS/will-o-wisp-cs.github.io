@@ -8,6 +8,7 @@
 - `/finals/` — 決勝トーナメント進出人数計算（スイスドロー予選の確率計算）
 - `/points/` — DMPランキングポイント計算（順位・参加人数・ジャッジ有無から獲得pt）
 - `/schedule/` — 鬼火CS 大会スケジュール（dmp-ranking.com の大会日程から毎日自動取得）
+- `/tax/` — 主催者用の帳簿（青色申告）。データは本人の Google ドライブに保存。メニュー・トップのカードには載せない
 
 ## 技術構成
 
@@ -36,13 +37,14 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
   finals/    進出人数計算: index.html / main.ts(DOM) / input.ts / tournament.ts / swiss.ts / finals.ts / format.ts
   points/    ポイント計算: index.html / main.ts(DOM) / input.ts / points.ts
   schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / calendar.ts(祝日) / fetch.ts(Node専用の取得スクリプト) / csv.ts + export-csv.ts(月別 CSV 出力)
-  shared/    全ページ共通: dom.ts(el, card) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / style.css
+  tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
+  shared/    全ページ共通: dom.ts(el, card) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / style.css
 ルート直下のファイル   package.json, package-lock.json, tsconfig.json, vite.config.ts, .gitignore のみ
 ```
 
 - ルート直下にはツールが要求する設定ファイル以外を置かない。フォルダも増やさない
 - テストは対象ファイルの隣に `*.test.ts` として置く（例: `src/points/points.test.ts`）
-- 各機能は `main.ts` だけが DOM を触り、計算・パースは純粋関数に分けてテストする
+- 各機能は `main.ts` だけが DOM を触り（帳簿は画面が多いので `main.ts`・`view-*.ts`・`ui.ts`）、計算・パースは純粋関数に分けてテストする
 - 機能フォルダ同士は import しない。共通のものは `shared/` に置く
 - ページを追加するときは `src/<名前>/index.html` を作り、`vite.config.ts` の input、`src/shared/menu.ts` の `SITE_PAGES`、メインページ（`src/index.html`）のカードに追加する。公開URLは `/<名前>/`
 - ページ間の移動は上部の帯の右端のハンバーガーメニュー（`mountSiteMenu(ページID)` を各 `main.ts` で呼ぶ）
@@ -79,3 +81,10 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - `fetch.ts`・`export-csv.ts` は Node で型を取り除いて直接実行するため、これらから import されるファイル内の import は `.ts` 拡張子付きで書く
 - 月別 CSV は BOM 付き UTF-8・CRLF（Excel 向け）。承認「◎」のみ。検索は `EventFrom`〜`EventTo` で月を指定するので過去の月も出せる
 - `events.json` は bot が更新する。手で編集しない
+
+### 帳簿（詳細は docs/superpowers/specs/2026-10-07-tax-ledger-design.md）
+- 帳簿・領収書は本人の Google ドライブの「鬼火CS帳簿」フォルダにだけ保存する。リポジトリや localStorage に入れない
+- OAuth スコープは `drive.file` のみ。同意画面は「テスト」のまま、テストユーザーは本人だけ。ページ内での ID・パスワード照合はしない
+- 1取引＝1仕訳。金額は整数（円）。会場費＝地代家賃、賞品代＝広告宣伝費
+- 開催の ID は大会詳細ページの URL。`events.json` から消えた開催も帳簿には残す
+- 保存前にドライブの version を比べ、違えば保存しない（他の端末での更新）。保存ごとに `backup/` に直前の版を残す（年ごとに30件）
