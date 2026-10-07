@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fcfbfd" />
+    <meta name="robots" content="noindex" />
+    <title>【鬼火CS】帳簿</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://accounts.google.com/gsi/client" async></script>
+  </head>
+  <body>
+    <div class="glow" aria-hidden="true"></div>
+    <header class="site-header">
+      <p>鬼火CS 帳簿（青色申告）</p>
+    </header>
+    <main>
+      <header class="hero">
+        <a class="eyebrow" href="/">← 鬼火CS トップ</a>
+        <h1><span class="sr-only">【鬼火CS】</span>帳簿</h1>
+      </header>
+
+      <p id="status" class="tax-status" role="status" aria-live="polite" hidden></p>
+      <nav id="tabs" class="tax-tabs" aria-label="画面" hidden></nav>
+      <div id="view"></div>
+
+      <footer class="footer">鬼火CS</footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

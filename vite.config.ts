@@ -16,6 +16,7 @@ export default defineConfig({
         finals: src('finals/index.html'),
         points: src('points/index.html'),
         schedule: src('schedule/index.html'),
+        tax: src('tax/index.html'),
       },
     },
   },

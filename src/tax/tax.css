@@ -1,0 +1,267 @@
+/* 帳簿ページだけで使うスタイル。色は shared/style.css の CSS 変数を使う */
+
+.tax-status[hidden],
+.tax-tabs[hidden] {
+  display: none;
+}
+
+.tax-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: var(--surface-sub);
+  border: 1px solid var(--border);
+}
+
+.tax-status[data-kind="error"] {
+  color: var(--warn-fg);
+  background: var(--warn-bg);
+  border-color: transparent;
+}
+
+.tax-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.tax-tabs button,
+.tax-sub button,
+.tax-secondary {
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--fg);
+  background: transparent;
+  box-shadow: none;
+  border-radius: 10px;
+}
+
+.tax-tabs button[aria-current="page"],
+.tax-sub button[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.tax-secondary {
+  padding: 0 16px;
+  border: 1px solid var(--border-strong);
+  background: #ffffff;
+}
+
+.tax-secondary:hover {
+  box-shadow: none;
+}
+
+.tax-sub {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface-sub);
+  border: 1px solid var(--border);
+}
+
+.tax-form {
+  display: grid;
+  gap: 4px;
+}
+
+.tax-form select,
+.tax-form textarea,
+.tax-filter select,
+.tax-filter input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 12px;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--fg);
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+}
+
+.tax-form textarea {
+  min-height: 80px;
+  padding: 12px;
+}
+
+.tax-form input[type="date"],
+.tax-form input.tax-text {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+}
+
+.tax-form .field {
+  display: grid;
+}
+
+.tax-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tax-actions > button:first-child {
+  flex: 1;
+}
+
+.tax-upload {
+  display: grid;
+  place-items: center;
+  min-height: 64px;
+  border: 2px dashed var(--border-strong);
+  border-radius: 12px;
+  font-weight: 700;
+  color: var(--purple);
+  cursor: pointer;
+}
+
+.tax-upload input {
+  display: none;
+}
+
+.tax-files {
+  margin: 8px 0 0;
+  padding-left: 1.2em;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tax-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.tax-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.tax-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.tax-item-sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tax-item .tax-actions {
+  margin-top: 0;
+}
+
+.tax-amount {
+  font-family: var(--font-num);
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.tax-amount.minus {
+  color: var(--red);
+}
+
+.tax-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tax-summary div {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--surface-sub);
+}
+
+.tax-summary span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tax-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tax-table th,
+.tax-table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.tax-table td.yen,
+.tax-table th.yen {
+  text-align: right;
+  font-family: var(--font-num);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.tax-table tr.total td {
+  font-weight: 700;
+  border-top: 2px solid var(--border-strong);
+}
+
+.tax-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tax-filter input {
+  font-size: 0.9rem;
+}
+
+.tax-notice {
+  margin: 12px 0 0;
+  padding-left: 1.2em;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tax-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+details.tax-details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 12px;
+}
