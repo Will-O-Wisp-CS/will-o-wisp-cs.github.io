@@ -25,9 +25,6 @@
 }
 
 .tax-tabs {
-  position: sticky;
-  top: 0;
-  z-index: 5;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 4px;

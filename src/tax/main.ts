@@ -14,6 +14,10 @@ import { mergeEvents } from './reminder';
 import * as store from './store';
 import { button, field, input, showErrors } from './ui';
 import * as homeView from './view-home';
+import * as inputView from './view-input';
+import * as listView from './view-list';
+import * as reportView from './view-report';
+import * as settingsView from './view-settings';
 
 type Tab = 'home' | 'input' | 'list' | 'report' | 'settings';
 const TABS: { id: Tab; label: string }[] = [
@@ -24,9 +28,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'settings', label: '設定' },
 ];
 
-/** 入力タブを開いたときのフォーム（売上の開催、または編集する取引） */
-export type InputContext = { mode: 'sale'; eventId: string } | { mode: 'edit'; id: string } | null;
-
 const statusEl = document.querySelector<HTMLParagraphElement>('#status')!;
 const tabsEl = document.querySelector<HTMLElement>('#tabs')!;
 const viewEl = document.querySelector<HTMLDivElement>('#view')!;
@@ -36,7 +37,6 @@ mountSiteMenu('tax');
 
 let app: App | null = null;
 let tab: Tab = 'home';
-let inputContext: InputContext = null;
 
 function showStatus(message: string, kind: 'info' | 'error' = 'info', action?: HTMLButtonElement): void {
   statusEl.replaceChildren(el('span', message));
@@ -173,6 +173,7 @@ async function start(settings: store.Loaded<Settings>, ledger: store.Loaded<Ledg
   app = {
     settings,
     ledger,
+    inputContext: null,
     save: async (next) => {
       showStatus('保存しています…');
       try {
@@ -198,16 +199,17 @@ async function start(settings: store.Loaded<Settings>, ledger: store.Loaded<Ledg
       }
     },
     openSaleForm: (eventId) => {
-      inputContext = { mode: 'sale', eventId };
+      app!.inputContext = { mode: 'sale', eventId };
       setTab('input');
     },
     editTransaction: (id) => {
-      inputContext = { mode: 'edit', id };
+      app!.inputContext = { mode: 'edit', id };
       setTab('input');
     },
     switchYear: (year) => loadYear(year),
     signOut,
     notify: (message) => showStatus(message),
+    fail: showError,
   };
   showStatus('');
   renderTabs();
@@ -221,7 +223,7 @@ function renderTabs(): void {
   tabsEl.replaceChildren(
     ...TABS.map((t) => {
       const b = button(t.label, () => {
-        inputContext = null;
+        if (app) app.inputContext = null;
         setTab(t.id);
       });
       if (t.id === tab) b.setAttribute('aria-current', 'page');
@@ -240,13 +242,8 @@ function setTab(next: Tab): void {
 function render(): void {
   if (!app) return;
   viewEl.replaceChildren();
-  switch (tab) {
-    case 'home':
-      homeView.render(viewEl, app);
-      break;
-    default:
-      viewEl.append(el('p', inputContext ? '入力画面は準備中です' : '準備中です', 'tax-empty'));
-  }
+  const views = { home: homeView, input: inputView, list: listView, report: reportView, settings: settingsView };
+  views[tab].render(viewEl, app);
 }
 
 renderSignedOut();
