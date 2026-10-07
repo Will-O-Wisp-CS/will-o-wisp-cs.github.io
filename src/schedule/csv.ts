@@ -1,4 +1,5 @@
 import type { ScheduleEvent } from '../shared/events.ts';
+import { toCsv } from '../shared/csv.ts';
 import { groupByMonth, receptionWindow } from './schedule.ts';
 
 /** 月指定のパース結果（形は shared/parse.ts の ParseResult に合わせる） */
@@ -30,7 +31,7 @@ export function monthRange(year: number, month: number): { from: string; to: str
 export function eventsCsv(events: ScheduleEvent[]): string {
   const sorted = groupByMonth(events).flatMap((g) => g.events);
   const rows = sorted.map((e) => [formatDate(e.date), e.venue, String(e.capacity), receptionWindow(e.start)]);
-  return '﻿' + [HEADER, ...rows].map((cells) => cells.map(csvCell).join(',') + '\r\n').join('');
+  return toCsv([HEADER, ...rows]);
 }
 
 /** '2026-10-04' → '2026/10/04(日)' */
@@ -38,8 +39,4 @@ function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number);
   const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
   return `${iso.replaceAll('-', '/')}(${weekday})`;
-}
-
-function csvCell(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
