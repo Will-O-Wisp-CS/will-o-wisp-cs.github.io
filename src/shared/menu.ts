@@ -1,6 +1,7 @@
 import { el } from './dom';
 
-export type PageId = 'home' | 'schedule' | 'finals' | 'points';
+/** tax（帳簿）はメニューに載せないが、ヘッダーのメニューは付ける */
+export type PageId = 'home' | 'schedule' | 'finals' | 'points' | 'tax';
 
 /** サイト内のページ一覧（ハンバーガーメニューの並び順） */
 export const SITE_PAGES: { id: PageId; href: string; label: string }[] = [
