@@ -247,9 +247,58 @@
   margin-bottom: 12px;
 }
 
-.tax-filter input {
+.tax-filter input,
+.tax-filter select {
   font-size: 0.9rem;
 }
+
+.tax-filter-date {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* iPhone（Safari）対策: 日付欄は独自の最小幅ではみ出し、選択欄は独自の見た目で低くなるので揃える */
+.tax-form input:not([type="radio"]),
+.tax-form select,
+.tax-filter input,
+.tax-filter select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tax-form input[type="date"],
+.tax-filter input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+  height: 52px;
+  min-height: 52px;
+  line-height: normal;
+}
+
+.tax-form input[type="date"]::-webkit-date-and-time-value,
+.tax-filter input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.tax-form select,
+.tax-filter select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 36px;
+  text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23625b70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
 
 .tax-notice {
   margin: 12px 0 0;

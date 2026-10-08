@@ -21,21 +21,27 @@ export function render(root: HTMLElement, app: App): void {
   section.append(el('h2', `${ledger.year}年の取引`, 'card-title'));
 
   const controls = el('div', '', 'tax-filter');
-  const from = input('date', filter.from, { 'aria-label': '日付（から）' });
-  const to = input('date', filter.to, { 'aria-label': '日付（まで）' });
+  const from = input('date', filter.from);
+  const to = input('date', filter.to);
   const amount = input('text', filter.amount, { inputmode: 'numeric', placeholder: '金額', 'aria-label': '金額' });
   const counterparty = input('text', filter.counterparty, { placeholder: '取引先', 'aria-label': '取引先' });
   const account = select(
-    [{ value: '', label: 'すべての科目' }, ...ACCOUNTS.map((a) => ({ value: a.id, label: a.label }))],
+    [{ value: '', label: '科目すべて' }, ...ACCOUNTS.map((a) => ({ value: a.id, label: a.label }))],
     filter.account,
   );
   account.setAttribute('aria-label', '科目');
   const payment = select(
-    [{ value: '', label: 'すべての支払方法' }, ...PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label }))],
+    [{ value: '', label: '支払方法すべて' }, ...PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label }))],
     filter.payment,
   );
   payment.setAttribute('aria-label', '支払方法');
-  controls.append(from, to, amount, counterparty, account, payment);
+  // iPhone では空の日付欄に何も出ないので、見出しを付ける
+  const dateField = (text: string, control: HTMLInputElement) => {
+    const wrap = el('label', '', 'tax-filter-date');
+    wrap.append(el('span', text), control);
+    return wrap;
+  };
+  controls.append(dateField('いつから', from), dateField('いつまで', to), amount, counterparty, account, payment);
   section.append(controls);
 
   const list = el('ul', '', 'tax-list');
