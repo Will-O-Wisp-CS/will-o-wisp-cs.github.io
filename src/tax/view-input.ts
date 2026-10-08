@@ -74,7 +74,8 @@ export function render(root: HTMLElement, app: App): void {
     showErrors(fields, result.ok ? {} : result.errors);
     if (!result.ok) return;
     submit.disabled = true;
-    void save(app, result.tx, editing, files(), trip?.() ?? 'oneWay').finally(() => {
+    // 領収書のアップロードから保存が終わるまで「保存しています…」を出す
+    void app.busy(() => save(app, result.tx, editing, files(), trip?.() ?? 'oneWay')).finally(() => {
       submit.disabled = false;
     });
   });

@@ -29,4 +29,6 @@ export type App = {
   notify(message: string): void;
   /** エラーを表示する */
   fail(error: unknown): void;
+  /** task の間、画面の前面に「保存しています…」を出す（領収書のアップロードなど save の前の処理用） */
+  busy<T>(task: () => Promise<T>): Promise<T>;
 };

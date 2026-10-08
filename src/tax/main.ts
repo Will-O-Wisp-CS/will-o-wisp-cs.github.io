@@ -10,6 +10,7 @@ import * as drive from './drive';
 import { todayJst } from './format';
 import { parseAmount } from './journal';
 import type { Ledger, Settings } from './ledger';
+import { createBusy } from './busy';
 import { createQueue } from './queue';
 import { mergeEvents } from './reminder';
 import * as store from './store';
@@ -43,7 +44,20 @@ let currentYear = Number(todayJst(new Date()).slice(0, 4));
 const serial = createQueue();
 let tab: Tab = 'home';
 
-function showStatus(message: string, kind: 'info' | 'error' = 'info', action?: HTMLButtonElement): void {
+// 保存中は画面の前面に「保存しています…」を出し、ほかの操作をできなくする
+const busyEl = el('div', '', 'tax-busy');
+busyEl.hidden = true;
+busyEl.setAttribute('role', 'alert');
+busyEl.setAttribute('aria-busy', 'true');
+const busyBox = el('div', '', 'tax-busy-box');
+busyBox.append(el('span', '', 'tax-spinner'), el('span', '保存しています…'));
+busyEl.append(busyBox);
+document.body.append(busyEl);
+const busy = createBusy((on) => {
+  busyEl.hidden = !on;
+});
+
+function showStatus(message: string, kind: 'info' | 'error' | 'success' = 'info', action?: HTMLButtonElement): void {
   statusEl.replaceChildren(el('span', message));
   if (action) statusEl.append(action);
   statusEl.dataset.kind = kind;
@@ -191,19 +205,21 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
     save: (update) => {
       // トークンの取り直しがクリック直後に始まるよう、await より前に呼ぶ
       const fresh = drive.ensureFresh();
-      return serial(async () => {
+      return busy(() => serial(async () => {
         showStatus('保存しています…');
         try {
           await fresh;
           app!.ledger = await store.saveLedger({ ...app!.ledger, data: update(app!.ledger.data) });
-          showStatus('保存しました');
+          showStatus('保存しました', 'success');
           render();
+          // 保存できたことに気づけるよう、「保存しました」の出ているページ上部に戻る
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           return true;
         } catch (e) {
           showError(e);
           return false;
         }
-      });
+      }));
     },
     saveSettings: (update, failureNote) => {
       const fresh = drive.ensureFresh();
@@ -212,7 +228,7 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
         try {
           await fresh;
           app!.settings = await store.saveSettings({ ...app!.settings, data: update(app!.settings.data) });
-          if (!failureNote) showStatus('保存しました');
+          if (!failureNote) showStatus('保存しました', 'success');
           render();
           return true;
         } catch (e) {
@@ -234,6 +250,7 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
     signOut,
     notify: (message) => showStatus(message),
     fail: showError,
+    busy,
   };
   // 失敗しても保存時に探し直すので、エラーは出さない
   store.prefetchFolders(loaded.data.year).catch(() => {});
