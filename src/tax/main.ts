@@ -50,10 +50,12 @@ busyEl.hidden = true;
 busyEl.setAttribute('role', 'alert');
 busyEl.setAttribute('aria-busy', 'true');
 const busyBox = el('div', '', 'tax-busy-box');
-busyBox.append(el('span', '', 'tax-spinner'), el('span', '保存しています…'));
+const busyText = el('span', '保存しています…');
+busyBox.append(el('span', '', 'tax-spinner'), busyText);
 busyEl.append(busyBox);
 document.body.append(busyEl);
-const busy = createBusy((on) => {
+const busy = createBusy((on, message) => {
+  if (message) busyText.textContent = message;
   busyEl.hidden = !on;
 });
 
@@ -101,8 +103,8 @@ async function signIn(): Promise<void> {
     return;
   }
   try {
-    showStatus('ログインしています…');
-    await drive.signIn(GOOGLE_CLIENT_ID);
+    showStatus('');
+    await busy(() => drive.signIn(GOOGLE_CLIENT_ID), 'ログインしています…');
     await loadYear(Number(todayJst(new Date()).slice(0, 4)));
   } catch (e) {
     showError(e);
@@ -125,16 +127,17 @@ async function loadYear(year: number): Promise<void> {
   app = null;
   tabsEl.hidden = true;
   viewEl.replaceChildren();
-  showStatus('読み込んでいます…');
+  showStatus('');
   try {
-    const settings = await store.loadSettings(todayJst(new Date()));
-    const loaded = await store.loadLedger(year);
-    if ('needsOpening' in loaded) {
-      renderOpening(year, settings);
-      showStatus('');
-      return;
-    }
-    await start(settings, loaded, await store.hasPreviousLedger(year));
+    await busy(async () => {
+      const settings = await store.loadSettings(todayJst(new Date()));
+      const loaded = await store.loadLedger(year);
+      if ('needsOpening' in loaded) {
+        renderOpening(year, settings);
+        return;
+      }
+      await start(settings, loaded, await store.hasPreviousLedger(year));
+    }, '読み込んでいます…');
   } catch (e) {
     showError(e);
   }
@@ -173,7 +176,7 @@ function renderOpening(year: number, settings: store.Loaded<Settings>): void {
     showErrors(fields, errors);
     if (Object.keys(errors).length > 0) return;
     submit.disabled = true;
-    void (async () => {
+    void busy(async () => {
       try {
         // 再試行でも重複しないよう、帳簿は既存を使い、設定は読み直してから保存する
         const ledger = await store.createLedger(year, opening);
@@ -184,7 +187,7 @@ function renderOpening(year: number, settings: store.Loaded<Settings>): void {
         submit.disabled = false;
         showError(e);
       }
-    })();
+    }, '帳簿を作っています…');
   });
   section.append(form);
   viewEl.replaceChildren(section);
@@ -219,11 +222,11 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
           showError(e);
           return false;
         }
-      }));
+      }), '保存しています…');
     },
     saveSettings: (update, failureNote) => {
       const fresh = drive.ensureFresh();
-      return serial(async () => {
+      const run = () => serial(async () => {
         if (!failureNote) showStatus('保存しています…');
         try {
           await fresh;
@@ -237,6 +240,8 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
           return false;
         }
       });
+      // ついでの更新（failureNote あり）は裏で行い、待ち表示は出さない
+      return failureNote ? run() : busy(run, '保存しています…');
     },
     openSaleForm: (eventId) => {
       app!.inputContext = { mode: 'sale', eventId };
@@ -250,7 +255,7 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
     signOut,
     notify: (message) => showStatus(message),
     fail: showError,
-    busy,
+    busy: (task) => busy(task, '保存しています…'),
   };
   // 失敗しても保存時に探し直すので、エラーは出さない
   store.prefetchFolders(loaded.data.year).catch(() => {});
