@@ -2,7 +2,7 @@ import { el } from '../shared/dom';
 import type { App } from './app';
 import { fileUrl } from './drive';
 import { formatYen } from './format';
-import { ACCOUNTS, accountLabel, type AccountId } from './ledger';
+import { ACCOUNTS, accountLabel, PAYMENT_METHODS, type AccountId, type PaymentMethod } from './ledger';
 import { eventBalance, eventStatus } from './reminder';
 import { summaryOf } from './report';
 import { searchTransactions, type SearchFilter } from './search';
@@ -12,7 +12,7 @@ import { eventLabel } from './view-home';
 const KIND_LABELS = { sale: '売上', expense: '経費', transfer: '振替' } as const;
 
 /** 画面を切り替えても絞り込み条件を保つ */
-let filter: SearchFilter = { from: '', to: '', amount: '', counterparty: '', account: '' };
+let filter: SearchFilter = { from: '', to: '', amount: '', counterparty: '', account: '', payment: '' };
 
 /** 一覧: 取引の検索・編集と、開催ごとの収支 */
 export function render(root: HTMLElement, app: App): void {
@@ -30,7 +30,12 @@ export function render(root: HTMLElement, app: App): void {
     filter.account,
   );
   account.setAttribute('aria-label', '科目');
-  controls.append(from, to, amount, counterparty, account);
+  const payment = select(
+    [{ value: '', label: 'すべての支払方法' }, ...PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label }))],
+    filter.payment,
+  );
+  payment.setAttribute('aria-label', '支払方法');
+  controls.append(from, to, amount, counterparty, account, payment);
   section.append(controls);
 
   const list = el('ul', '', 'tax-list');
@@ -41,6 +46,7 @@ export function render(root: HTMLElement, app: App): void {
       amount: amount.value,
       counterparty: counterparty.value,
       account: account.value as AccountId | '',
+      payment: payment.value as PaymentMethod | '',
     };
     const found = searchTransactions(ledger.transactions, filter);
     list.replaceChildren();
@@ -68,7 +74,7 @@ export function render(root: HTMLElement, app: App): void {
       list.append(item);
     }
   };
-  for (const c of [from, to, amount, counterparty, account]) c.addEventListener('input', update);
+  for (const c of [from, to, amount, counterparty, account, payment]) c.addEventListener('input', update);
   update();
   section.append(list);
 

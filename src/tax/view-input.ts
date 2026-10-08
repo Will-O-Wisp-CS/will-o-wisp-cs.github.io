@@ -3,7 +3,7 @@ import type { App } from './app';
 import { ensureFresh, fileUrl } from './drive';
 import { todayJst } from './format';
 import { defaultSaleAmount, parseExpense, parseSale, parseTransfer, type TxDraft, type TxResult } from './journal';
-import { ACCOUNTS, accountLabel, PAYMENT_ACCOUNTS, PAYMENT_LABELS, type AccountId, type Transaction } from './ledger';
+import { ACCOUNTS, accountLabel, PAYMENT_METHODS, paymentOf, type AccountId, type PaymentMethod, type Transaction } from './ledger';
 import { pendingEvents } from './reminder';
 import { attachReceipts, renameReceipts, trashReceipts } from './store';
 import { button, field, input, select, showErrors, type Field } from './ui';
@@ -147,8 +147,8 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
     editing?.debit ?? '',
   );
   const payment = select(
-    [{ value: '', label: '支払方法を選ぶ' }, ...PAYMENT_ACCOUNTS.map((id) => ({ value: id, label: PAYMENT_LABELS[id]! }))],
-    editing?.credit ?? '',
+    [{ value: '', label: '支払方法を選ぶ' }, ...PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label }))],
+    (editing && paymentOf(editing)) ?? '',
   );
   const counterparty = input('text', editing?.counterparty ?? '', { placeholder: '例: 晴れる屋' });
   const memo = input('text', editing?.memo ?? '', { placeholder: '例: 10/4 会場費' });
@@ -157,7 +157,7 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
     date: field('日付', date),
     amount: field('金額', amount),
     account: field('科目', account),
-    payment: field('支払方法', payment, '個人のカード・財布なら「個人のお金」'),
+    payment: field('支払方法', payment, 'クレカ・PayPay・交通系IC は個人のお金として記帳'),
     counterparty: field('取引先', counterparty),
     memo: field('メモ', memo),
     eventId: field('開催', eventSel, '会場費・賞品代など開催の経費なら選ぶ'),
@@ -173,7 +173,7 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
           date: date.value,
           amount: amount.value,
           account: account.value as AccountId | '',
-          payment: payment.value as AccountId | '',
+          payment: payment.value as PaymentMethod | '',
           counterparty: counterparty.value,
           memo: memo.value,
           eventId: eventSel.value,

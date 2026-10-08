@@ -1,4 +1,4 @@
-import { EXPENSE_ACCOUNTS, isDebitNormal, type AccountId, type Ledger, type LedgerEvent, type Transaction } from './ledger';
+import { EXPENSE_ACCOUNTS, isDebitNormal, paymentLabel, type AccountId, type Ledger, type LedgerEvent, type Transaction } from './ledger';
 
 export type BalanceRow = { cash: number; bank: number; ownerDraw: number; ownerLoan: number; capital: number };
 
@@ -63,13 +63,17 @@ export function generalLedger(ledger: Ledger, account: AccountId): { opening: nu
   return { opening, lines };
 }
 
-/** 摘要。売上は「鬼火CS in ○○ N人」、それ以外は「取引先 メモ」 */
+/** 摘要に支払方法を付ける支払方法（科目だけでは分からないもの） */
+const NOTED_PAYMENTS = ['card', 'paypay', 'ic'];
+
+/** 摘要。売上は「鬼火CS in ○○ N人」、それ以外は「取引先 メモ」。クレカ・PayPay・交通系IC は「（クレカ）」を付ける */
 export function summaryOf(tx: Transaction, events: LedgerEvent[]): string {
   if (tx.kind === 'sale') {
     const venue = events.find((e) => e.id === tx.eventId)?.venue ?? '';
     return `鬼火CS in ${venue} ${tx.participants ?? 0}人`;
   }
-  return `${tx.counterparty ?? ''} ${tx.memo ?? ''}`.trim();
+  const text = `${tx.counterparty ?? ''} ${tx.memo ?? ''}`.trim();
+  return tx.payment && NOTED_PAYMENTS.includes(tx.payment) ? `${text}（${paymentLabel(tx.payment)}）` : text;
 }
 
 /** 日付順に並べる（同じ日は元の順を保つ） */
