@@ -3,7 +3,7 @@ import type { App } from './app';
 import { ensureFresh, fileUrl } from './drive';
 import { todayJst } from './format';
 import { defaultSaleAmount, parseExpense, parseSale, parseTransfer, type TxDraft, type TxResult } from './journal';
-import { ACCOUNTS, accountLabel, PAYMENT_METHODS, paymentOf, type AccountId, type PaymentMethod, type Transaction } from './ledger';
+import { ACCOUNTS, accountLabel, expenseOrderOf, PAYMENT_METHODS, paymentOf, type AccountId, type PaymentMethod, type Transaction } from './ledger';
 import { pendingEvents } from './reminder';
 import { attachReceipts, renameReceipts, trashReceipts } from './store';
 import { button, field, input, select, showErrors, type Field } from './ui';
@@ -139,7 +139,7 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
   const account = select(
     [
       { value: '', label: '科目を選ぶ' },
-      ...app.settings.data.expenseOrder.map((id) => {
+      ...expenseOrderOf(app.settings.data.expenseOrder).map((id) => {
         const a = ACCOUNTS.find((x) => x.id === id)!;
         return { value: id, label: a.hint ? `${a.label}（${a.hint}）` : a.label };
       }),
@@ -153,14 +153,19 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
   const counterparty = input('text', editing?.counterparty ?? '', { placeholder: '例: 晴れる屋' });
   const memo = input('text', editing?.memo ?? '', { placeholder: '例: 10/4 会場費' });
   const eventSel = select(eventOptions(app, 'なし'), editing?.eventId ?? '');
+  // 開催を選んだら、日付をその開催日にする
+  eventSel.addEventListener('change', () => {
+    const event = app.ledger.data.events.find((e) => e.id === eventSel.value);
+    if (event) date.value = event.date;
+  });
   const fields = {
+    eventId: field('開催', eventSel, '会場費・賞品代など開催の経費なら選ぶ（日付も入ります）'),
     date: field('日付', date),
     amount: field('金額', amount),
     account: field('科目', account),
     payment: field('支払方法', payment, 'クレカ・PayPay・交通系IC は個人のお金として記帳'),
     counterparty: field('取引先', counterparty),
     memo: field('メモ', memo),
-    eventId: field('開催', eventSel, '会場費・賞品代など開催の経費なら選ぶ'),
   };
   form.append(...Object.values(fields).map((f) => f.wrap));
   const files = receiptPicker(form, editing);

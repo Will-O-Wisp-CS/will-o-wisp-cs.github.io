@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accountLabel, ACCOUNTS, DEFAULT_SETTINGS, EXPENSE_ACCOUNTS, isDebitNormal, paymentOf, PAYMENT_METHODS } from './ledger';
+import { accountLabel, ACCOUNTS, DEFAULT_SETTINGS, EXPENSE_ACCOUNTS, expenseOrderOf, isDebitNormal, paymentOf, PAYMENT_METHODS } from './ledger';
 import type { Transaction } from './ledger';
 
 describe('勘定科目', () => {
@@ -48,5 +48,25 @@ describe('支払方法', () => {
     expect(paymentOf(tx('cash'))).toBe('cash');
     expect(paymentOf(tx('ownerLoan', 'paypay'))).toBe('paypay');
     expect(paymentOf({ ...tx('cash'), kind: 'sale' })).toBeUndefined();
+  });
+});
+
+describe('外注工賃', () => {
+  it('外注費は決算書の欄名「外注工賃」の経費', () => {
+    expect(accountLabel('outsourcing')).toBe('外注工賃');
+    expect(EXPENSE_ACCOUNTS).toContain('outsourcing');
+    expect(ACCOUNTS.find((a) => a.id === 'outsourcing')?.hint).toContain('外注費');
+  });
+
+  it('追加前に保存した科目の並びにない科目は最後に足す', () => {
+    const old = EXPENSE_ACCOUNTS.filter((id) => id !== 'outsourcing').reverse();
+    const order = expenseOrderOf(old);
+    expect(order.slice(0, old.length)).toEqual(old);
+    expect(order.at(-1)).toBe('outsourcing');
+    expect(new Set(order).size).toBe(EXPENSE_ACCOUNTS.length);
+  });
+
+  it('経費でない科目や重複は並びから除く', () => {
+    expect(expenseOrderOf(['rent', 'cash', 'rent'] as never)).toEqual(['rent', ...EXPENSE_ACCOUNTS.filter((id) => id !== 'rent')]);
   });
 });
