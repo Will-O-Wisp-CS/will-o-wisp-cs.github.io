@@ -34,3 +34,18 @@ describe('createBusy', () => {
     expect(log).toEqual([true, false]);
   });
 });
+
+describe('表示する文言', () => {
+  it('処理ごとに文言を渡し、始まるたびに切り替える', async () => {
+    const log: [boolean, string | undefined][] = [];
+    const busy = createBusy((on, message) => log.push([on, message]));
+    await busy(async () => {
+      await busy(async () => {}, '保存しています…');
+    }, '読み込んでいます…');
+    expect(log).toEqual([
+      [true, '読み込んでいます…'],
+      [true, '保存しています…'],
+      [false, undefined],
+    ]);
+  });
+});
