@@ -37,7 +37,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
   finals/    進出人数計算: index.html / main.ts(DOM) / input.ts / tournament.ts / swiss.ts / finals.ts / format.ts
   points/    ポイント計算: index.html / main.ts(DOM) / input.ts / points.ts
   schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / calendar.ts(祝日) / fetch.ts(Node専用の取得スクリプト) / csv.ts + export-csv.ts(月別 CSV 出力)
-  tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
+  tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / busy.ts(保存中の表示) / queue.ts(保存の順番待ち) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
   shared/    全ページ共通: dom.ts(el, card) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / style.css
 ルート直下のファイル   package.json, package-lock.json, tsconfig.json, vite.config.ts, .gitignore のみ
 ```
@@ -89,6 +89,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - 科目を足したら、保存済みの設定の並び（`expenseOrder`）にない科目は `expenseOrderOf` で最後に足して表示する
 - 経費の支払方法は 現金 / 普通預金 / 個人のお金 / クレカ / PayPay / 交通系IC。クレカ・PayPay・交通系IC は個人のもの（事業主借）として記帳し、どれで払ったかを `payment` に残す
 - 経費の入力欄は 開催 → 日付 → 科目 → 金額 → 支払方法 → 取引先 → メモ → 領収書。旅費交通費を選ぶと支払方法の初期値は交通系IC。設定の `travelTemplates`（区間・片道運賃）から金額を選べ、往復は同じ内容で2件保存する（領収書は1件目だけ）
+- 保存中は画面の前面に「保存しています…」（`busy.ts`）を出してほかの操作を止め、帳簿の保存に成功したらページ上部に戻って「保存しました」を出す
 - 開催の ID は大会詳細ページの URL。`events.json` から消えた開催も帳簿には残す
 - 保存前にドライブ上の中身の `rev`（保存ごとに +1）を比べ、違えば保存しない（他の端末での更新）。ドライブのファイルの version は勝手に増えるので使わない
 - `backup/` に直前の版を残すのは、ページを開いて最初の保存とその後1時間ごと（年ごとに30件）。保存のたびに取ると遅いため。領収書は同時にアップロードし、フォルダはログイン後に先読みする

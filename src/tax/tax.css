@@ -18,6 +18,13 @@
   border: 1px solid var(--border);
 }
 
+.tax-status[data-kind="success"] {
+  font-weight: 700;
+  color: var(--purple);
+  background: #f5f0ff;
+  border-color: var(--purple);
+}
+
 .tax-status[data-kind="error"] {
   color: var(--warn-fg);
   background: var(--warn-bg);
@@ -274,4 +281,50 @@ details.tax-details summary {
 
 .tax-travel fieldset.judge {
   margin-bottom: 24px;
+}
+
+/* 保存中の表示（画面の前面） */
+.tax-busy {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 24, 38, 0.35);
+}
+
+.tax-busy[hidden] {
+  display: none;
+}
+
+.tax-busy-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(28, 24, 38, 0.2);
+}
+
+.tax-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: tax-spin 0.8s linear infinite;
+}
+
+@keyframes tax-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tax-spinner {
+    animation-duration: 2.4s;
+  }
 }
