@@ -13,6 +13,7 @@ export type AccountId =
   | 'supplies'
   | 'communication'
   | 'fees'
+  | 'outsourcing'
   | 'misc';
 
 export type AccountKind = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
@@ -88,6 +89,7 @@ export const ACCOUNTS: { id: AccountId; label: string; kind: AccountKind; hint?:
   { id: 'supplies', label: '消耗品費', kind: 'expense', hint: 'スリーブ・文房具など' },
   { id: 'communication', label: '通信費', kind: 'expense', hint: '携帯・切手など' },
   { id: 'fees', label: '支払手数料', kind: 'expense', hint: '振込手数料など' },
+  { id: 'outsourcing', label: '外注工賃', kind: 'expense', hint: '外注費：ジャッジ・スタッフへの報酬など' },
   { id: 'misc', label: '雑費', kind: 'expense', hint: 'ほかに当てはまらないもの' },
 ];
 
@@ -122,6 +124,12 @@ export function accountLabel(id: AccountId): string {
 export function isDebitNormal(id: AccountId): boolean {
   const kind = ACCOUNTS.find((a) => a.id === id)!.kind;
   return kind === 'asset' || kind === 'expense';
+}
+
+/** 設定の経費科目の並び。後から追加した科目は最後に足し、経費でない科目や重複は除く */
+export function expenseOrderOf(order: AccountId[]): AccountId[] {
+  const known = [...new Set(order)].filter((id) => EXPENSE_ACCOUNTS.includes(id));
+  return [...known, ...EXPENSE_ACCOUNTS.filter((id) => !known.includes(id))];
 }
 
 export function DEFAULT_SETTINGS(today: string): Settings {

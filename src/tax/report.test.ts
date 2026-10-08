@@ -29,6 +29,7 @@ describe('profitLoss', () => {
     expect(pl.expenses.find((e) => e.account === 'rent')?.amount).toBe(5000);
     expect(pl.expenses.find((e) => e.account === 'advertising')?.amount).toBe(3000);
     expect(pl.expenses.find((e) => e.account === 'misc')?.amount).toBe(0);
+    expect(pl.expenses.find((e) => e.account === 'outsourcing')?.amount).toBe(0);
     expect(pl.expenseTotal).toBe(8000);
     expect(pl.income).toBe(12000);
   });

@@ -1,7 +1,7 @@
 import { el } from '../shared/dom';
 import type { App } from './app';
 import { parseAmount } from './journal';
-import { accountLabel, type AccountId } from './ledger';
+import { accountLabel, expenseOrderOf, type AccountId } from './ledger';
 import { button, field, input, showErrors } from './ui';
 
 /** 設定: 記帳開始日・参加費の初期値・経費科目の並び・期首残高・ログアウト */
@@ -38,12 +38,13 @@ export function render(root: HTMLElement, app: App): void {
   const list = el('ul', '', 'tax-list');
   const move = (i: number, d: number) => {
     void app.saveSettings((s) => {
-      const next = [...s.expenseOrder];
+      const next = expenseOrderOf(s.expenseOrder);
       [next[i], next[i + d]] = [next[i + d], next[i]];
       return { ...s, expenseOrder: next as AccountId[] };
     });
   };
-  settings.expenseOrder.forEach((id, i) => {
+  const expenseOrder = expenseOrderOf(settings.expenseOrder);
+  expenseOrder.forEach((id, i) => {
     const item = el('li', '', 'tax-item');
     const head = el('div', '', 'tax-item-head');
     head.append(el('span', accountLabel(id)));
@@ -53,7 +54,7 @@ export function render(root: HTMLElement, app: App): void {
     up.setAttribute('aria-label', `${accountLabel(id)}を上へ`);
     down.setAttribute('aria-label', `${accountLabel(id)}を下へ`);
     up.disabled = i === 0;
-    down.disabled = i === settings.expenseOrder.length - 1;
+    down.disabled = i === expenseOrder.length - 1;
     actions.append(up, down);
     head.append(actions);
     item.append(head);
