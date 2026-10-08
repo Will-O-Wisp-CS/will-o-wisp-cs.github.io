@@ -62,6 +62,9 @@ export type Ledger = {
   rev?: number;
 };
 
+/** 旅費交通費のテンプレ（区間と片道の運賃） */
+export type TravelTemplate = { label: string; amount: number };
+
 /** 設定（ドライブの settings.json） */
 export type Settings = {
   /** 記帳開始日。これより前の開催はリマインドしない */
@@ -70,6 +73,8 @@ export type Settings = {
   defaultFee: number;
   /** 経費科目の表示順 */
   expenseOrder: AccountId[];
+  /** 旅費交通費のテンプレ（追加前の設定にはない） */
+  travelTemplates?: TravelTemplate[];
   /** 保存のたびに1増やす（Ledger.rev と同じ） */
   rev?: number;
 };

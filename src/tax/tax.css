@@ -262,3 +262,16 @@ details.tax-details summary {
   color: var(--muted);
   margin-top: 12px;
 }
+
+/* 説明文が長い欄名は、欄名を詰めずに説明文を次の行に回す */
+.tax-form label:not(.choice) {
+  flex-wrap: wrap;
+}
+
+.tax-form label:not(.choice) > .hint {
+  flex-basis: 100%;
+}
+
+.tax-travel fieldset.judge {
+  margin-bottom: 24px;
+}

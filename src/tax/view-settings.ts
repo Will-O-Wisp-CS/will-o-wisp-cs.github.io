@@ -2,6 +2,7 @@ import { el } from '../shared/dom';
 import type { App } from './app';
 import { parseAmount } from './journal';
 import { accountLabel, expenseOrderOf, type AccountId } from './ledger';
+import { parseTravelTemplate, travelTemplatesOf } from './travel';
 import { button, field, input, showErrors } from './ui';
 
 /** 設定: 記帳開始日・参加費の初期値・経費科目の並び・期首残高・ログアウト */
@@ -62,6 +63,38 @@ export function render(root: HTMLElement, app: App): void {
   });
   order.append(list);
 
+  const travel = el('section', '', 'card');
+  travel.append(el('h2', '旅費交通費のテンプレ', 'card-title'));
+  travel.append(el('p', '経費で旅費交通費を選ぶと、ここの区間から金額（片道）を選べます', 'note'));
+  const templates = travelTemplatesOf(settings);
+  const tlist = el('ul', '', 'tax-list');
+  templates.forEach((t, i) => {
+    const item = el('li', '', 'tax-item');
+    const head = el('div', '', 'tax-item-head');
+    head.append(el('span', t.label), el('span', `${t.amount.toLocaleString()}円`, 'tax-amount'));
+    const del = button('削除', () => {
+      void app.saveSettings((s) => ({ ...s, travelTemplates: travelTemplatesOf(s).filter((_, j) => j !== i) }));
+    }, 'tax-secondary');
+    del.setAttribute('aria-label', `${t.label}を削除`);
+    item.append(head, del);
+    tlist.append(item);
+  });
+  if (templates.length > 0) travel.append(tlist);
+  const tform = el('form', '', 'tax-form') as HTMLFormElement;
+  tform.noValidate = true;
+  const label = input('text', '', { placeholder: '例: 笹塚⇔新宿' });
+  const fare = input('text', '', { inputmode: 'numeric', placeholder: '例: 140' });
+  const tfields = { label: field('区間', label), amount: field('片道の運賃', fare) };
+  tform.append(tfields.label.wrap, tfields.amount.wrap, el('button', 'テンプレを追加', 'submit-wide'));
+  tform.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const r = parseTravelTemplate(label.value, fare.value);
+    showErrors(tfields, r.ok ? {} : r.errors);
+    if (!r.ok) return;
+    void app.saveSettings((s) => ({ ...s, travelTemplates: [...travelTemplatesOf(s), r.template] }));
+  });
+  travel.append(tform);
+
   const opening = el('section', '', 'card');
   opening.append(el('h2', `${ledger.year}年の期首残高`, 'card-title'));
   if (app.openingLocked) {
@@ -99,5 +132,5 @@ export function render(root: HTMLElement, app: App): void {
   account.append(el('h2', 'ログイン', 'card-title'));
   account.append(button('ログアウト', () => app.signOut(), 'tax-secondary'));
 
-  root.append(basic, order, opening, account);
+  root.append(basic, travel, order, opening, account);
 }
