@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Ledger } from './ledger';
 
 vi.mock('./drive', () => ({
@@ -11,6 +11,7 @@ vi.mock('./drive', () => ({
   copyFile: vi.fn(),
   listFiles: vi.fn(async () => []),
   trashFile: vi.fn(),
+  uploadFile: vi.fn(),
 }));
 
 const drive = await import('./drive');
@@ -101,5 +102,63 @@ describe('他の端末との衝突の判定', () => {
     const loaded = await store.loadSettings('2026-10-08');
     const saved = await store.saveSettings(loaded);
     expect(saved.data.rev).toBe(1);
+  });
+});
+
+describe('保存の速さ', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('バックアップは開いて最初の保存と、その後1時間ごとだけ', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-08T10:00:00Z'));
+    let content: unknown = ledger2026;
+    vi.mocked(drive.findFile).mockImplementation(async (_p, name) => (name === 'ledger-2026.json' ? { id: 'a', name, version: '1' } : null));
+    vi.mocked(drive.readJson).mockImplementation(async () => content as never);
+    vi.mocked(drive.updateJson).mockImplementation(async (_id, data) => {
+      content = data;
+      return { id: 'a', name: 'ledger-2026.json', version: '2' };
+    });
+    const first = await store.loadLedger(2026);
+    if ('needsOpening' in first) throw new Error('帳簿があるはず');
+    const second = await store.saveLedger(first);
+    expect(drive.copyFile).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(new Date('2026-10-08T10:30:00Z'));
+    const third = await store.saveLedger(second);
+    expect(drive.copyFile).toHaveBeenCalledTimes(1);
+    expect(drive.listFiles).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(new Date('2026-10-08T11:01:00Z'));
+    await store.saveLedger(third);
+    expect(drive.copyFile).toHaveBeenCalledTimes(2);
+  });
+
+  it('領収書は同時にアップロードし、順番どおりに返す', async () => {
+    let inflight = 0;
+    let maxInflight = 0;
+    vi.mocked(drive.uploadFile).mockImplementation(async (_parent, name) => {
+      inflight++;
+      maxInflight = Math.max(maxInflight, inflight);
+      await new Promise((r) => setTimeout(r, 10));
+      inflight--;
+      return { fileId: name, name, mimeType: 'application/pdf' };
+    });
+    const tx = { ...ledger2026.transactions[0], counterparty: '晴れる屋' };
+    const files = ['a.pdf', 'b.pdf', 'c.pdf'].map((n) => new File(['%PDF'], n, { type: 'application/pdf' }));
+    const receipts = await store.attachReceipts(2026, tx, files);
+    expect(maxInflight).toBe(3);
+    expect(receipts.map((r) => r.name)).toEqual([
+      '2026-12-31_5000_晴れる屋.pdf',
+      '2026-12-31_5000_晴れる屋_2.pdf',
+      '2026-12-31_5000_晴れる屋_3.pdf',
+    ]);
+  });
+});
+
+describe('フォルダの先読み', () => {
+  it('ログイン後に先読みしておけば、保存のときにフォルダを探さない', async () => {
+    vi.mocked(drive.uploadFile).mockResolvedValue({ fileId: 'r', name: 'r.pdf', mimeType: 'application/pdf' });
+    await store.prefetchFolders(2026);
+    vi.mocked(drive.ensureFolder).mockClear();
+    await store.attachReceipts(2026, ledger2026.transactions[0], [new File(['%PDF'], 'r.pdf', { type: 'application/pdf' })]);
+    expect(drive.ensureFolder).not.toHaveBeenCalled();
   });
 });
