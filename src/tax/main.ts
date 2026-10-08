@@ -235,6 +235,8 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
     notify: (message) => showStatus(message),
     fail: showError,
   };
+  // 失敗しても保存時に探し直すので、エラーは出さない
+  store.prefetchFolders(loaded.data.year).catch(() => {});
   showStatus(loaded.openingChanged ? `期首残高を${loaded.data.year - 1}年の期末に合わせました` : '');
   renderTabs();
   render();

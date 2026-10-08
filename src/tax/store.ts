@@ -8,6 +8,8 @@ import { nextOpening } from './report';
 const ROOT = '鬼火CS帳簿';
 const SETTINGS = 'settings.json';
 const BACKUP_KEEP = 30;
+/** バックアップの間隔。保存のたびに取ると遅いので、開いて最初の保存とその後1時間ごとにする */
+const BACKUP_INTERVAL_MS = 60 * 60 * 1000;
 
 /** 他の端末で先に保存されていた */
 export class ConflictError extends Error {
@@ -43,6 +45,8 @@ export type LoadedLedger = Loaded<Ledger> & { openingChanged: boolean };
 
 let rootId: string | null = null;
 const folderIds = new Map<string, string>();
+/** 帳簿ファイルごとの最後のバックアップ時刻 */
+const lastBackup = new Map<string, number>();
 
 async function root(): Promise<string> {
   rootId ??= await drive.ensureFolder(null, ROOT);
@@ -59,10 +63,16 @@ async function folder(path: string): Promise<string> {
   return parent;
 }
 
+/** 最初の保存を待たせないよう、使うフォルダを先に探しておく（ログイン後に裏で呼ぶ） */
+export async function prefetchFolders(year: number): Promise<void> {
+  await Promise.all([folder('backup'), folder(`receipts/${year}`)]);
+}
+
 /** ログアウト時にフォルダ ID のキャッシュを捨てる */
 export function resetStore(): void {
   rootId = null;
   folderIds.clear();
+  lastBackup.clear();
 }
 
 const ledgerName = (year: number) => `ledger-${year}.json`;
@@ -117,9 +127,15 @@ export async function createLedger(year: number, opening: { cash: number; bank: 
   return loaded(data, created.id);
 }
 
-/** 衝突を確かめ、直前の版を backup/ に残してから保存する */
+/**
+ * 衝突を確かめてから保存する。開いて最初の保存とその後1時間ごとに、直前の版を backup/ に残す
+ * （それ以外の保存はドライブ自体の版の履歴に任せる）
+ */
 export async function saveLedger(l: Loaded<Ledger>): Promise<Loaded<Ledger>> {
   return saveChecked(l, async () => {
+    const now = Date.now();
+    if (now - (lastBackup.get(l.fileId) ?? -Infinity) < BACKUP_INTERVAL_MS) return;
+    lastBackup.set(l.fileId, now);
     const backup = await folder('backup');
     await drive.copyFile(l.fileId, backup, backupName(l.data.year, new Date()));
     const existing = await drive.listFiles(backup);
@@ -133,14 +149,14 @@ export async function saveLedger(l: Loaded<Ledger>): Promise<Loaded<Ledger>> {
 /** 領収書をアップロードする。画像は縮小して JPEG に、PDF はそのまま */
 export async function attachReceipts(year: number, tx: Transaction, files: File[]): Promise<Receipt[]> {
   const parent = await folder(`receipts/${year}`);
-  const receipts: Receipt[] = [];
-  for (const [i, file] of files.entries()) {
-    const ext = extensionOf(file);
-    const blob = ext === 'pdf' ? file : await resizeImage(file);
-    const name = receiptFileName(tx, ext, tx.receipts.length + i);
-    receipts.push(await drive.uploadFile(parent, name, blob));
-  }
-  return receipts;
+  // 1枚ずつだと遅いので同時にアップロードする（結果は選んだ順）
+  return Promise.all(
+    files.map(async (file, i) => {
+      const ext = extensionOf(file);
+      const blob = ext === 'pdf' ? file : await resizeImage(file);
+      return drive.uploadFile(parent, receiptFileName(tx, ext, tx.receipts.length + i), blob);
+    }),
+  );
 }
 
 /** 日付・金額・取引先が変わったら領収書のファイル名も合わせる */
