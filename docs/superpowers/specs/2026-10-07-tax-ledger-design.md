@@ -59,7 +59,8 @@
 - 取引は一覧から編集・削除できる。削除するとその取引の領収書ファイルはドライブのゴミ箱に移す
 
 ## 開催との連動とリマインド
-- ビルド時に `src/shared/events.json` を import し、ページを開いたときに帳簿にない開催を帳簿の `events` に追加する
+- ビルド時に `src/shared/events.json` と大会の記録 `src/shared/events-archive.json`（2026-10-08 追加。過去の月も含む）を import し、ページを開いたときに帳簿にない開催を帳簿の `events` に追加する
+  - 大会の記録は毎日の `fetch-schedule` が取得結果を足して作る。記録にない 2026-01〜先月の月は月ごとに dmp-ranking.com を検索して埋める（取得済みの月は二度は取らない）
   - 開催の ID は大会詳細ページの URL（`ScheduleEvent.url`）
   - `events.json` は当月1日以降しか持たないので、過去月の開催は帳簿側にだけ残る。`events.json` から消えたことを中止とはみなさない
 - **開催の状態**

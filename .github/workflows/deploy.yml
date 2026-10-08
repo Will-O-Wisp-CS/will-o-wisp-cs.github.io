@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # 毎日 0:00 JST に大会スケジュールを取得し、変更があればコミットしてデプロイする
+  # 毎日 0:00 JST に大会スケジュールを取得し（大会の記録も更新）、変更があればコミットしてデプロイする
   schedule:
     - cron: '0 15 * * *'
 
@@ -35,12 +35,12 @@ jobs:
         if: github.event_name != 'push'
         run: |
           npm run fetch-schedule
-          if git diff --quiet -- src/shared/events.json; then
+          if git diff --quiet -- src/shared/events.json src/shared/events-archive.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add src/shared/events.json
+            git add src/shared/events.json src/shared/events-archive.json
             git commit -m 'chore: update CS schedule'
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"

@@ -1,7 +1,8 @@
 import '../shared/style.css';
 import './tax.css';
 import { el } from '../shared/dom';
-import type { ScheduleEvent } from '../shared/events';
+import { mergeEventLists, type ScheduleEvent } from '../shared/events';
+import archive from '../shared/events-archive.json';
 import data from '../shared/events.json';
 import { mountSiteMenu } from '../shared/menu';
 import type { App } from './app';
@@ -33,7 +34,8 @@ const TABS: { id: Tab; label: string }[] = [
 const statusEl = document.querySelector<HTMLParagraphElement>('#status')!;
 const tabsEl = document.querySelector<HTMLElement>('#tabs')!;
 const viewEl = document.querySelector<HTMLDivElement>('#view')!;
-const schedule = (data as { events: ScheduleEvent[] }).events;
+// 大会の記録（過去の月も含む）と今の大会スケジュールを合わせて取り込む
+const schedule = mergeEventLists((archive as { events: ScheduleEvent[] }).events, (data as { events: ScheduleEvent[] }).events);
 
 mountSiteMenu('tax');
 
