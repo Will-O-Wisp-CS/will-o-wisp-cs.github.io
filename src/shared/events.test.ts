@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatEventDate, nextEventDay, type ScheduleEvent } from './events';
+import { formatEventDate, mergeEventLists, nextEventDay, type ScheduleEvent } from './events';
 
 function event(date: string, start: string, venue = '晴れる屋3'): ScheduleEvent {
   return {
@@ -50,5 +50,15 @@ describe('formatEventDate', () => {
   it('月/日(曜日) にする', () => {
     expect(formatEventDate('2026-10-04')).toBe('10/04(日)');
     expect(formatEventDate('2026-10-24')).toBe('10/24(土)');
+  });
+});
+
+describe('mergeEventLists', () => {
+  const e = (date: string, url: string, venue = 'A', start = '10:30') =>
+    ({ date, venue, format: 'オリジナル', entryType: '個人', capacity: 64, start, url });
+
+  it('同じ URL は後のリストの内容を使い、日付・開始時刻の順に並べる', () => {
+    const merged = mergeEventLists([e('2026-10-04', 'x', 'A', '17:10'), e('2026-01-11', 'y')], [e('2026-10-04', 'x', 'B', '17:10'), e('2026-10-04', 'z')]);
+    expect(merged.map((m) => `${m.url}:${m.venue}`)).toEqual(['y:A', 'z:A', 'x:B']);
   });
 });

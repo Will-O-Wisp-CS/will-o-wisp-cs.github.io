@@ -1,0 +1,186 @@
+{
+  "updatedAt": "2026-09-30T19:50:56.750Z",
+  "months": [],
+  "events": [
+    {
+      "date": "2026-10-04",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=344&Seq=1"
+    },
+    {
+      "date": "2026-10-04",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 108,
+      "start": "17:10",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=344&Seq=2"
+    },
+    {
+      "date": "2026-10-11",
+      "venue": "竜星のPAO千葉中央店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=344&Seq=1"
+    },
+    {
+      "date": "2026-10-11",
+      "venue": "フルコンプ千葉店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "16:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=344&Seq=1"
+    },
+    {
+      "date": "2026-10-12",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=344&Seq=2"
+    },
+    {
+      "date": "2026-10-12",
+      "venue": "竜星のPAO秋葉原ロケット無線店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 128,
+      "start": "15:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3579&EventID=344&Seq=2"
+    },
+    {
+      "date": "2026-10-18",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=344&Seq=1"
+    },
+    {
+      "date": "2026-10-24",
+      "venue": "フルコンプ本厚木店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "11:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=181&EventID=344&Seq=1"
+    },
+    {
+      "date": "2026-10-25",
+      "venue": "竜星のPAO千葉中央店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=344&Seq=2"
+    },
+    {
+      "date": "2026-10-25",
+      "venue": "フルコンプ千葉店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "16:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=344&Seq=2"
+    },
+    {
+      "date": "2026-11-03",
+      "venue": "竜星のPAO千葉中央店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-08",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-08",
+      "venue": "フルコンプ千葉店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "15:50",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-12",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "17:40",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=351&Seq=2"
+    },
+    {
+      "date": "2026-11-22",
+      "venue": "竜星のPAO千葉中央店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=351&Seq=2"
+    },
+    {
+      "date": "2026-11-22",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 104,
+      "start": "17:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-28",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=351&Seq=2"
+    },
+    {
+      "date": "2026-11-28",
+      "venue": "フルコンプ本厚木店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "11:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=181&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-28",
+      "venue": "竜星のPAO秋葉原ロケット無線店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 128,
+      "start": "15:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3579&EventID=351&Seq=2"
+    },
+    {
+      "date": "2026-11-29",
+      "venue": "フルコンプ千葉店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "15:50",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=2"
+    }
+  ]
+}

@@ -23,7 +23,7 @@ npm run export-csv -- 2026-10 <出力先.csv>   # 指定月の大会を「開催
 ```
 
 `main` への push で `.github/workflows/deploy.yml` が test → build → Pages デプロイを行う。
-同じワークフローが毎日 0:00 JST（cron `0 15 * * *`）に `fetch-schedule` を実行し、`events.json` が変わったときだけ bot がコミットしてデプロイする。
+同じワークフローが毎日 0:00 JST（cron `0 15 * * *`）に `fetch-schedule` を実行し、`events.json` か `events-archive.json` が変わったときだけ bot がコミットしてデプロイする。
 
 ## フォルダ構成
 
@@ -36,9 +36,9 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
   home/      メインページ: main.ts(メニュー・参加表明リンク・マッチングサイトに割り当てる大会) / icon.jpg(公式Xのアイコン)
   finals/    進出人数計算: index.html / main.ts(DOM) / input.ts / tournament.ts / swiss.ts / finals.ts / format.ts
   points/    ポイント計算: index.html / main.ts(DOM) / input.ts / points.ts
-  schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / calendar.ts(祝日) / fetch.ts(Node専用の取得スクリプト) / csv.ts + export-csv.ts(月別 CSV 出力)
+  schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / calendar.ts(祝日) / fetch.ts(Node専用の取得スクリプト) / archive.ts(大会の記録) / csv.ts + export-csv.ts(月別 CSV 出力)
   tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / busy.ts(保存中の表示) / queue.ts(保存の順番待ち) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
-  shared/    全ページ共通: dom.ts(el, card) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / style.css
+  shared/    全ページ共通: dom.ts(el, card) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / events-archive.json(大会の記録。過去の月も含む) / style.css
 ルート直下のファイル   package.json, package-lock.json, tsconfig.json, vite.config.ts, .gitignore のみ
 ```
 
@@ -80,7 +80,8 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - 大会がすべて開催済みになった月は表示しない
 - `fetch.ts`・`export-csv.ts` は Node で型を取り除いて直接実行するため、これらから import されるファイル内の import は `.ts` 拡張子付きで書く
 - 月別 CSV は BOM 付き UTF-8・CRLF（Excel 向け）。承認「◎」のみ。検索は `EventFrom`〜`EventTo` で月を指定するので過去の月も出せる
-- `events.json` は bot が更新する。手で編集しない
+- `events.json`・`events-archive.json` は bot が更新する。手で編集しない
+- 大会の記録（`events-archive.json`）は帳簿用。`fetch-schedule` が毎回の取得結果を足し（消さない）、記録にない 2026-01〜先月の月は月ごとに取りに行く（取得済みの月は `months` に持ち二度は取らない）
 
 ### 帳簿（詳細は docs/superpowers/specs/2026-10-07-tax-ledger-design.md）
 - 帳簿・領収書は本人の Google ドライブの「鬼火CS帳簿」フォルダにだけ保存する。リポジトリや localStorage に入れない
@@ -91,6 +92,6 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - 経費の入力欄は 開催 → 日付 → 科目 → 金額 → 支払方法 → 取引先 → メモ → 領収書。旅費交通費を選ぶと支払方法の初期値は交通系IC。設定の `travelTemplates`（区間・片道運賃）から金額を選べ、往復は同じ内容で2件保存する（領収書は1件目だけ）
 - 一覧の開催ごとの収支は 売上 / 広告宣伝費 / 外注工賃 / 旅費交通費 / 差額（ほかの経費を付けた開催だけ「その他」も）。差額はひも付いた経費をすべて引く
 - ログイン・読み込み・帳簿の作成・保存の間は、画面の前面にスピナーと文言（「ログインしています…」「読み込んでいます…」「保存しています…」など。`busy.ts`）を出してほかの操作を止める。売上のついでの参加費の初期値の更新は裏で行い出さない。帳簿の保存に成功したらページ上部に戻って「保存しました」を出す
-- 開催の ID は大会詳細ページの URL。`events.json` から消えた開催も帳簿には残す
+- 開催の ID は大会詳細ページの URL。帳簿は `events-archive.json` と `events.json` を合わせて取り込む。どちらから消えた開催も帳簿には残す
 - 保存前にドライブ上の中身の `rev`（保存ごとに +1）を比べ、違えば保存しない（他の端末での更新）。ドライブのファイルの version は勝手に増えるので使わない
 - `backup/` に直前の版を残すのは、ページを開いて最初の保存とその後1時間ごと（年ごとに30件）。保存のたびに取ると遅いため。領収書は同時にアップロードし、フォルダはログイン後に先読みする

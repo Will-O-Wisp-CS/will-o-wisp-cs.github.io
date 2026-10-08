@@ -34,3 +34,10 @@ export function formatEventDate(iso: string): string {
   const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
   return `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${weekday})`;
 }
+
+/** 大会の一覧をまとめる。同じ大会（大会詳細ページの URL）は後の一覧の内容を使い、日付・開始時刻の順に並べる */
+export function mergeEventLists(...lists: ScheduleEvent[][]): ScheduleEvent[] {
+  const byUrl = new Map<string, ScheduleEvent>();
+  for (const list of lists) for (const e of list) byUrl.set(e.url, e);
+  return [...byUrl.values()].sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+}
