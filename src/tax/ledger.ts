@@ -52,6 +52,8 @@ export type Ledger = {
   /** 開催日がその年の開催だけ */
   events: LedgerEvent[];
   transactions: Transaction[];
+  /** 保存のたびに1増やす。他の端末で保存されたかをこれで判定する（古いファイルにはない＝0） */
+  rev?: number;
 };
 
 /** 設定（ドライブの settings.json） */
@@ -62,6 +64,8 @@ export type Settings = {
   defaultFee: number;
   /** 経費科目の表示順 */
   expenseOrder: AccountId[];
+  /** 保存のたびに1増やす（Ledger.rev と同じ） */
+  rev?: number;
 };
 
 /** 勘定科目の一覧。表示名は決算書の科目名 */

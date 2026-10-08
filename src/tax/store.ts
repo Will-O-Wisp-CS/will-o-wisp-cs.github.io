@@ -16,7 +16,27 @@ export class ConflictError extends Error {
   }
 }
 
+/**
+ * version は中身の rev（文字列）。ドライブのファイルの version は作成直後などに
+ * ドライブ側で勝手に増えることがあり、他の端末での保存の判定に使えない
+ */
 export type Loaded<T> = { data: T; fileId: string; version: string };
+
+type Revisioned = { rev?: number };
+
+function loaded<T extends Revisioned>(data: T, fileId: string): Loaded<T> {
+  return { data, fileId, version: String(data.rev ?? 0) };
+}
+
+/** ドライブ上の中身の rev が読み込んだときと同じなら、rev を1進めて保存する */
+async function saveChecked<T extends Revisioned>(l: Loaded<T>, beforeWrite?: () => Promise<void>): Promise<Loaded<T>> {
+  const current = await drive.readJson<Revisioned>(l.fileId);
+  if (String(current.rev ?? 0) !== l.version) throw new ConflictError();
+  await beforeWrite?.();
+  const data = { ...l.data, rev: Number(l.version) + 1 };
+  await drive.updateJson(l.fileId, data);
+  return loaded(data, l.fileId);
+}
 
 /** 読み込んだ帳簿。openingChanged は前年の期末に合わせて期首残高を直した（まだ保存していない）とき true */
 export type LoadedLedger = Loaded<Ledger> & { openingChanged: boolean };
@@ -50,16 +70,14 @@ const ledgerName = (year: number) => `ledger-${year}.json`;
 export async function loadSettings(today: string): Promise<Loaded<Settings>> {
   const parent = await root();
   const file = await drive.findFile(parent, SETTINGS);
-  if (file) return { data: await drive.readJson<Settings>(file.id), fileId: file.id, version: file.version };
+  if (file) return loaded(await drive.readJson<Settings>(file.id), file.id);
   const data = DEFAULT_SETTINGS(today);
   const created = await drive.createJson(parent, SETTINGS, data);
-  return { data, fileId: created.id, version: created.version };
+  return loaded(data, created.id);
 }
 
 export async function saveSettings(s: Loaded<Settings>): Promise<Loaded<Settings>> {
-  if ((await drive.getVersion(s.fileId)) !== s.version) throw new ConflictError();
-  const updated = await drive.updateJson(s.fileId, s.data);
-  return { ...s, version: updated.version };
+  return saveChecked(s);
 }
 
 /**
@@ -77,11 +95,11 @@ export async function loadLedger(year: number): Promise<LoadedLedger | { needsOp
     return { ...(await createLedger(year, prevOpening)), openingChanged: false };
   }
   const data = await drive.readJson<Ledger>(file.id);
-  const loaded = { data, fileId: file.id, version: file.version };
+  const current = loaded(data, file.id);
   if (!prevOpening || (prevOpening.cash === data.opening.cash && prevOpening.bank === data.opening.bank)) {
-    return { ...loaded, openingChanged: false };
+    return { ...current, openingChanged: false };
   }
-  return { ...loaded, data: { ...data, opening: prevOpening }, openingChanged: true };
+  return { ...current, data: { ...data, opening: prevOpening }, openingChanged: true };
 }
 
 /** 前年の帳簿があるか（あれば期首残高は自動で決まり、手で変えない） */
@@ -93,24 +111,23 @@ export async function hasPreviousLedger(year: number): Promise<boolean> {
 export async function createLedger(year: number, opening: { cash: number; bank: number }): Promise<Loaded<Ledger>> {
   const parent = await root();
   const existing = await drive.findFile(parent, ledgerName(year));
-  if (existing) return { data: await drive.readJson<Ledger>(existing.id), fileId: existing.id, version: existing.version };
+  if (existing) return loaded(await drive.readJson<Ledger>(existing.id), existing.id);
   const data: Ledger = { year, opening, events: [], transactions: [] };
   const created = await drive.createJson(parent, ledgerName(year), data);
-  return { data, fileId: created.id, version: created.version };
+  return loaded(data, created.id);
 }
 
 /** 衝突を確かめ、直前の版を backup/ に残してから保存する */
 export async function saveLedger(l: Loaded<Ledger>): Promise<Loaded<Ledger>> {
-  if ((await drive.getVersion(l.fileId)) !== l.version) throw new ConflictError();
-  const backup = await folder('backup');
-  await drive.copyFile(l.fileId, backup, backupName(l.data.year, new Date()));
-  const existing = await drive.listFiles(backup);
-  for (const name of backupsToDelete(existing.map((f) => f.name), l.data.year, BACKUP_KEEP)) {
-    const target = existing.find((f) => f.name === name);
-    if (target) await drive.trashFile(target.id);
-  }
-  const updated = await drive.updateJson(l.fileId, l.data);
-  return { ...l, version: updated.version };
+  return saveChecked(l, async () => {
+    const backup = await folder('backup');
+    await drive.copyFile(l.fileId, backup, backupName(l.data.year, new Date()));
+    const existing = await drive.listFiles(backup);
+    for (const name of backupsToDelete(existing.map((f) => f.name), l.data.year, BACKUP_KEEP)) {
+      const target = existing.find((f) => f.name === name);
+      if (target) await drive.trashFile(target.id);
+    }
+  });
 }
 
 /** 領収書をアップロードする。画像は縮小して JPEG に、PDF はそのまま */

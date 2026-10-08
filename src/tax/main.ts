@@ -37,6 +37,8 @@ const schedule = (data as { events: ScheduleEvent[] }).events;
 mountSiteMenu('tax');
 
 let app: App | null = null;
+/** 表示中（または読み込み中）の帳簿の年。再読み込みに使う */
+let currentYear = Number(todayJst(new Date()).slice(0, 4));
 /** 帳簿・設定の保存は1つずつ順に行う（重なると古い内容で上書きしてしまうため） */
 const serial = createQueue();
 let tab: Tab = 'home';
@@ -57,7 +59,7 @@ function errorMessage(e: unknown): string {
 
 function showError(e: unknown): void {
   console.error(e);
-  const reload = e instanceof store.ConflictError ? button('再読み込み', () => void loadYear(app!.ledger.data.year), 'tax-secondary') : undefined;
+  const reload = e instanceof store.ConflictError ? button('再読み込み', () => void loadYear(currentYear), 'tax-secondary') : undefined;
   showStatus(errorMessage(e), 'error', reload);
 }
 
@@ -104,6 +106,11 @@ function signOut(): void {
 // ---------- 読み込み ----------
 
 async function loadYear(year: number): Promise<void> {
+  currentYear = year;
+  // 読み込み中に古い画面で保存されないよう、画面を消しておく
+  app = null;
+  tabsEl.hidden = true;
+  viewEl.replaceChildren();
   showStatus('読み込んでいます…');
   try {
     const settings = await store.loadSettings(todayJst(new Date()));
