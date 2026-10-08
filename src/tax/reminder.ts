@@ -36,14 +36,20 @@ export function pendingEvents(ledger: Ledger, startDate: string, now: Date): Led
   );
 }
 
-/** 開催にひも付いた売上と経費の合計 */
-export function eventBalance(event: LedgerEvent, transactions: Transaction[]): { sales: number; expenses: number } {
-  let sales = 0;
-  let expenses = 0;
+/** 開催ごとの収支。差額は売上からひも付いた経費をすべて引いたもの（その他は上の3科目以外の経費） */
+export type EventBalance = { sales: number; advertising: number; outsourcing: number; travel: number; other: number; net: number };
+
+/** 開催にひも付いた売上と、経費の科目別の合計 */
+export function eventBalance(event: LedgerEvent, transactions: Transaction[]): EventBalance {
+  const b: EventBalance = { sales: 0, advertising: 0, outsourcing: 0, travel: 0, other: 0, net: 0 };
   for (const t of transactions) {
     if (t.eventId !== event.id) continue;
-    if (t.kind === 'sale') sales += t.amount;
-    else if (t.kind === 'expense') expenses += t.amount;
+    if (t.kind === 'sale') b.sales += t.amount;
+    else if (t.kind === 'expense') {
+      if (t.debit === 'advertising' || t.debit === 'outsourcing' || t.debit === 'travel') b[t.debit] += t.amount;
+      else b.other += t.amount;
+    }
   }
-  return { sales, expenses };
+  b.net = b.sales - b.advertising - b.outsourcing - b.travel - b.other;
+  return b;
 }
