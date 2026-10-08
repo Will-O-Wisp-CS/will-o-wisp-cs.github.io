@@ -143,7 +143,8 @@ export async function listFiles(parentId: string): Promise<DriveFile[]> {
 }
 
 export async function readJson<T>(fileId: string): Promise<T> {
-  return callJson<T>(`${API}/files/${fileId}?alt=media`);
+  // 他の端末での保存を見落とさないよう、ブラウザのキャッシュを使わない
+  return callJson<T>(`${API}/files/${fileId}?alt=media`, { cache: 'no-store' });
 }
 
 export async function getVersion(fileId: string): Promise<string> {
