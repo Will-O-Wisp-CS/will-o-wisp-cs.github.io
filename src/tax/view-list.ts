@@ -6,7 +6,7 @@ import { ACCOUNTS, accountLabel, PAYMENT_METHODS, type AccountId, type PaymentMe
 import { eventBalance, eventStatus } from './reminder';
 import { summaryOf } from './report';
 import { searchTransactions, type SearchFilter } from './search';
-import { button, input, select, table } from './ui';
+import { button, input, select } from './ui';
 import { eventLabel } from './view-home';
 
 const KIND_LABELS = { sale: '売上', expense: '経費', transfer: '振替' } as const;
@@ -81,15 +81,37 @@ export function render(root: HTMLElement, app: App): void {
   const balances = el('section', '', 'card');
   balances.append(el('h2', '開催ごとの収支', 'card-title'));
   const now = new Date();
-  const rows = ledger.events
-    .filter((e) => !e.cancelled && eventStatus(e, ledger.transactions, now) !== 'upcoming')
-    .map((e) => {
-      const b = eventBalance(e, ledger.transactions);
-      return [eventLabel(e), formatYen(b.sales), formatYen(b.expenses), formatYen(b.sales - b.expenses)];
-    });
-  balances.append(
-    rows.length > 0 ? table(['開催', '売上', '経費', '差額'], rows, [1, 2, 3]) : el('p', 'まだ開催はありません', 'tax-empty'),
-  );
+  const shown = ledger.events.filter((e) => !e.cancelled && eventStatus(e, ledger.transactions, now) !== 'upcoming');
+  const rows = shown.map((e) => ({ e, b: eventBalance(e, ledger.transactions) }));
+  // 3科目以外の経費（会場費など）を付けた開催だけ「その他」を出す（差額が合うように）
+  const hasOther = rows.some((r) => r.b.other > 0);
+  if (rows.length > 0) {
+    const list = el('ul', '', 'tax-list');
+    for (const { e, b } of rows) {
+      const item = el('li', '', 'tax-item');
+      item.append(el('div', eventLabel(e), 'tax-item-head'));
+      const grid = el('dl', '', 'tax-balance');
+      const cells: [string, number][] = [
+        ['売上', b.sales],
+        ['広告宣伝費', b.advertising],
+        ['外注工賃', b.outsourcing],
+        ['旅費交通費', b.travel],
+        ...(b.other > 0 ? ([['その他', b.other]] as [string, number][]) : []),
+        ['差額', b.net],
+      ];
+      for (const [label, value] of cells) {
+        const cell = el('div', '', label === '差額' ? 'net' : '');
+        cell.append(el('dt', label), el('dd', formatYen(value), `tax-amount${value < 0 ? ' minus' : ''}`));
+        grid.append(cell);
+      }
+      item.append(grid);
+      list.append(item);
+    }
+    balances.append(list);
+    if (hasOther) balances.append(el('p', 'その他は会場費（地代家賃）など、上の3科目以外で開催に付けた経費です', 'note'));
+  } else {
+    balances.append(el('p', 'まだ開催はありません', 'tax-empty'));
+  }
 
   root.append(section, balances);
 }

@@ -78,8 +78,29 @@ describe('pendingEvents', () => {
 });
 
 describe('eventBalance', () => {
-  it('開催ごとの収支', () => {
-    const txs = [tx('sale', 'a', 20000), tx('expense', 'a', 5000), tx('expense', 'other', 999)];
-    expect(eventBalance(ev('a', '2026-10-04'), txs)).toEqual({ sales: 20000, expenses: 5000 });
+  const expense = (debit: Transaction['debit'], amount: number, eventId = 'a') => ({ ...tx('expense', eventId, amount), id: `${debit}-${amount}`, debit });
+
+  it('売上・広告宣伝費・外注工賃・旅費交通費・その他・差額', () => {
+    const txs = [
+      tx('sale', 'a', 20000),
+      expense('advertising', 3000),
+      expense('outsourcing', 2000),
+      expense('travel', 140),
+      expense('travel', 140),
+      expense('rent', 5000),
+      expense('travel', 999, 'other'),
+    ];
+    expect(eventBalance(ev('a', '2026-10-04'), txs)).toEqual({
+      sales: 20000,
+      advertising: 3000,
+      outsourcing: 2000,
+      travel: 280,
+      other: 5000,
+      net: 9720,
+    });
+  });
+
+  it('ひも付いた取引がなければすべて0', () => {
+    expect(eventBalance(ev('a', '2026-10-04'), [])).toEqual({ sales: 0, advertising: 0, outsourcing: 0, travel: 0, other: 0, net: 0 });
   });
 });

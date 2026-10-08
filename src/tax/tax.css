@@ -328,3 +328,38 @@ details.tax-details summary {
     animation-duration: 2.4s;
   }
 }
+
+/* 開催ごとの収支（科目ごとの金額を並べ、差額を強調） */
+.tax-balance {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.tax-balance div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tax-balance dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.tax-balance dd {
+  margin: 0;
+}
+
+.tax-balance .net {
+  grid-column: 1 / -1;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.tax-balance .net dt {
+  font-weight: 700;
+  color: var(--fg);
+}
