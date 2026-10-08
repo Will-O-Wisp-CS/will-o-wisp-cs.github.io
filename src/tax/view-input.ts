@@ -5,6 +5,7 @@ import { todayJst } from './format';
 import { defaultSaleAmount, parseExpense, parseSale, parseTransfer, type TxDraft, type TxResult } from './journal';
 import { ACCOUNTS, accountLabel, expenseOrderOf, PAYMENT_METHODS, paymentOf, type AccountId, type PaymentMethod, type Transaction } from './ledger';
 import { pendingEvents } from './reminder';
+import { defaultPaymentFor, travelTemplatesOf, tripTransactions, type Trip } from './travel';
 import { attachReceipts, renameReceipts, trashReceipts } from './store';
 import { button, field, input, select, showErrors, type Field } from './ui';
 import { eventLabel } from './view-home';
@@ -50,7 +51,7 @@ export function render(root: HTMLElement, app: App): void {
   const form = el('form', '', 'tax-form') as HTMLFormElement;
   form.noValidate = true;
   const build = { sale: saleForm, expense: expenseForm, transfer: transferForm }[currentKind];
-  const { fields, parse, files } = build(form, app, editing, ctx?.mode === 'sale' ? ctx.eventId : '');
+  const { fields, parse, files, trip } = build(form, app, editing, ctx?.mode === 'sale' ? ctx.eventId : '');
 
   const actions = el('div', '', 'tax-actions');
   const submit = el('button', editing ? '保存' : '記録する', 'submit-wide') as HTMLButtonElement;
@@ -73,7 +74,7 @@ export function render(root: HTMLElement, app: App): void {
     showErrors(fields, result.ok ? {} : result.errors);
     if (!result.ok) return;
     submit.disabled = true;
-    void save(app, result.tx, editing, files()).finally(() => {
+    void save(app, result.tx, editing, files(), trip?.() ?? 'oneWay').finally(() => {
       submit.disabled = false;
     });
   });
@@ -82,7 +83,7 @@ export function render(root: HTMLElement, app: App): void {
   root.append(section);
 }
 
-type Built = { fields: Record<string, Field>; parse: () => TxResult; files: () => File[] };
+type Built = { fields: Record<string, Field>; parse: () => TxResult; files: () => File[]; trip?: () => Trip };
 
 function eventOptions(app: App, emptyLabel: string) {
   return [
@@ -161,17 +162,30 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
   const fields = {
     eventId: field('開催', eventSel, '会場費・賞品代など開催の経費なら選ぶ（日付も入ります）'),
     date: field('日付', date),
-    amount: field('金額', amount),
     account: field('科目', account),
+    amount: field('金額', amount),
     payment: field('支払方法', payment, 'クレカ・PayPay・交通系IC は個人のお金として記帳'),
     counterparty: field('取引先', counterparty),
     memo: field('メモ', memo),
   };
-  form.append(...Object.values(fields).map((f) => f.wrap));
+  const travel = travelSection(app, editing, amount, memo);
+  form.append(fields.eventId.wrap, fields.date.wrap, fields.account.wrap, travel.wrap);
+  form.append(...[fields.amount, fields.payment, fields.counterparty, fields.memo].map((f) => f.wrap));
+  // 科目を選んだら支払方法の初期値を入れ（旅費交通費は交通系IC）、旅費交通費の欄を出す
+  const onAccount = () => {
+    travel.wrap.hidden = account.value !== 'travel';
+  };
+  account.addEventListener('change', () => {
+    const p = defaultPaymentFor(account.value as AccountId | '');
+    if (p) payment.value = p;
+    onAccount();
+  });
+  onAccount();
   const files = receiptPicker(form, editing);
   return {
     fields,
     files,
+    trip: () => (account.value === 'travel' ? travel.trip() : 'oneWay'),
     parse: () =>
       parseExpense(
         {
@@ -185,6 +199,53 @@ function expenseForm(form: HTMLFormElement, app: App, editing: Transaction | und
         },
         app.ledger.data.year,
       ),
+  };
+}
+
+/** 旅費交通費のときだけ出す欄: テンプレ（金額・メモを入れる）と片道 / 往復（新規のみ） */
+function travelSection(
+  app: App,
+  editing: Transaction | undefined,
+  amount: HTMLInputElement,
+  memo: HTMLInputElement,
+): { wrap: HTMLElement; trip: () => Trip } {
+  const wrap = el('div', '', 'tax-travel');
+  const templates = travelTemplatesOf(app.settings.data);
+  if (templates.length > 0) {
+    const sel = select(
+      [{ value: '', label: 'テンプレから選ぶ' }, ...templates.map((t, i) => ({ value: String(i), label: `${t.label} ${t.amount}円` }))],
+      '',
+    );
+    sel.addEventListener('change', () => {
+      const t = templates[Number(sel.value)];
+      if (!sel.value || !t) return;
+      amount.value = String(t.amount);
+      memo.value = t.label;
+    });
+    wrap.append(field('テンプレ', sel, '片道の運賃が入ります').wrap);
+  } else {
+    wrap.append(el('p', '「設定」でよく使う区間と運賃をテンプレに登録できます', 'note'));
+  }
+  if (editing) return { wrap, trip: () => 'oneWay' };
+  const group = el('fieldset', '', 'judge');
+  group.append(el('legend', '片道 / 往復'));
+  const choices = el('div', '', 'choices');
+  const name = `trip-${crypto.randomUUID()}`;
+  for (const [value, label, hint] of [
+    ['oneWay', '片道', '1件'],
+    ['roundTrip', '往復', '同じ内容で2件'],
+  ] as const) {
+    const choice = el('label', '', 'choice');
+    const radio = input('radio', value, { name });
+    radio.checked = value === 'oneWay';
+    choice.append(radio, label, el('span', hint, 'hint'));
+    choices.append(choice);
+  }
+  group.append(choices);
+  wrap.append(group);
+  return {
+    wrap,
+    trip: () => (wrap.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value as Trip) ?? 'oneWay',
   };
 }
 
@@ -249,7 +310,7 @@ function receiptPicker(form: HTMLFormElement, editing: Transaction | undefined):
   return () => files;
 }
 
-async function save(app: App, draft: TxDraft, editing: Transaction | undefined, files: File[]): Promise<void> {
+async function save(app: App, draft: TxDraft, editing: Transaction | undefined, files: File[], trip: Trip): Promise<void> {
   // 画像の縮小などで時間が経つ前（クリック直後）にトークンの取り直しを始める
   const fresh = ensureFresh();
   const ledger = app.ledger.data;
@@ -271,9 +332,15 @@ async function save(app: App, draft: TxDraft, editing: Transaction | undefined, 
   }
   const context = app.inputContext;
   app.inputContext = null;
+  // 往復は同じ内容で2件（領収書は1件目にだけ付ける）
+  const added = editing
+    ? []
+    : tripTransactions(draft, trip)
+        .slice(1)
+        .map((d) => ({ ...d, id: crypto.randomUUID(), receipts: [], updatedAt: tx.updatedAt }));
   const ok = await app.save((latest) => ({
     ...latest,
-    transactions: editing ? latest.transactions.map((t) => (t.id === tx.id ? tx : t)) : [...latest.transactions, tx],
+    transactions: editing ? latest.transactions.map((t) => (t.id === tx.id ? tx : t)) : [...latest.transactions, tx, ...added],
   }));
   if (!ok) {
     app.inputContext = context;
