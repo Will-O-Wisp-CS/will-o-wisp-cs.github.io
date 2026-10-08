@@ -74,6 +74,12 @@ describe('summaryOf', () => {
     expect(summaryOf(sample.transactions[1], sample.events)).toBe('鬼火CS in 晴れる屋3 20人');
   });
 
+  it('クレカ・PayPay・交通系ICで払った経費は摘要に支払方法を付ける', () => {
+    expect(summaryOf({ ...sample.transactions[3], payment: 'card' }, sample.events)).toBe('カードショップ 賞品（クレカ）');
+    expect(summaryOf({ ...sample.transactions[2], payment: 'ic', counterparty: '' }, sample.events)).toBe('（交通系IC）');
+    expect(summaryOf({ ...sample.transactions[3], payment: 'personal' }, sample.events)).toBe('カードショップ 賞品');
+  });
+
   it('取引先だけの経費は末尾に空白が残らない', () => {
     expect(summaryOf(sample.transactions[2], sample.events)).toBe('晴れる屋');
     expect(summaryOf(sample.transactions[3], sample.events)).toBe('カードショップ 賞品');

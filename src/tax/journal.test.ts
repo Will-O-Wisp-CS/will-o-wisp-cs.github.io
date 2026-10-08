@@ -5,7 +5,7 @@ const expense = {
   date: '2026-10-04',
   amount: '5000',
   account: 'rent' as const,
-  payment: 'ownerLoan' as const,
+  payment: 'personal' as const,
   counterparty: '晴れる屋',
   memo: '',
   eventId: '',
@@ -52,8 +52,18 @@ describe('parseExpense', () => {
     const r = parseExpense(expense, 2026);
     expect(r).toEqual({
       ok: true,
-      tx: { kind: 'expense', date: '2026-10-04', amount: 5000, debit: 'rent', credit: 'ownerLoan', counterparty: '晴れる屋', memo: '' },
+      tx: { kind: 'expense', date: '2026-10-04', amount: 5000, debit: 'rent', credit: 'ownerLoan', payment: 'personal', counterparty: '晴れる屋', memo: '' },
     });
+  });
+
+  it('クレカ払いは 経費科目/事業主借 で、支払方法を残す', () => {
+    const r = parseExpense({ ...expense, payment: 'card' }, 2026);
+    expect(r.ok && [r.tx.credit, r.tx.payment]).toEqual(['ownerLoan', 'card']);
+  });
+
+  it('普通預金払いは 経費科目/普通預金', () => {
+    const r = parseExpense({ ...expense, payment: 'bank' }, 2026);
+    expect(r.ok && r.tx.credit).toBe('bank');
   });
 
   it('開催を選んだ経費には eventId が付く', () => {

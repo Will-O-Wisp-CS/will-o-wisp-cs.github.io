@@ -1,5 +1,5 @@
 import type { ParseResult } from '../shared/parse';
-import type { AccountId, Transaction } from './ledger';
+import { PAYMENT_METHODS, type AccountId, type PaymentMethod, type Transaction } from './ledger';
 
 /** 保存前の取引（ID・領収書・更新日時は保存時に付ける） */
 export type TxDraft = Omit<Transaction, 'id' | 'receipts' | 'updatedAt'>;
@@ -49,7 +49,7 @@ export function parseExpense(
     date: string;
     amount: string;
     account: AccountId | '';
-    payment: AccountId | '';
+    payment: PaymentMethod | '';
     counterparty: string;
     memo: string;
     eventId: string;
@@ -60,14 +60,16 @@ export function parseExpense(
   const date = checkDate(input.date, year, errors);
   const amount = field(parseAmount(input.amount, '金額'), 'amount', errors);
   if (!input.account) errors.account = '科目を選んでください';
-  if (!input.payment) errors.payment = '支払方法を選んでください';
+  const method = PAYMENT_METHODS.find((m) => m.id === input.payment);
+  if (!method) errors.payment = '支払方法を選んでください';
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   const tx: TxDraft = {
     kind: 'expense',
     date,
     amount,
     debit: input.account as AccountId,
-    credit: input.payment as AccountId,
+    credit: method!.account,
+    payment: method!.id,
     counterparty: input.counterparty.trim(),
     memo: input.memo.trim(),
   };

@@ -20,6 +20,9 @@ export type AccountKind = 'asset' | 'liability' | 'equity' | 'revenue' | 'expens
 /** ドライブに保存した領収書ファイル */
 export type Receipt = { fileId: string; name: string; mimeType: string };
 
+/** 経費の支払方法。クレカ・PayPay・交通系IC は個人のもの（事業主借）として扱う */
+export type PaymentMethod = 'cash' | 'bank' | 'personal' | 'card' | 'paypay' | 'ic';
+
 /** 1取引＝1仕訳（借方1つ・貸方1つ） */
 export type Transaction = {
   id: string;
@@ -32,6 +35,8 @@ export type Transaction = {
   credit: AccountId;
   /** 開催 ID（大会詳細ページの URL）。売上は必須、経費は任意 */
   eventId?: string;
+  /** 経費の支払方法（追加前に入力した経費にはない。paymentOf で貸方から判断する） */
+  payment?: PaymentMethod;
   participants?: number;
   fee?: number;
   counterparty?: string;
@@ -88,13 +93,26 @@ export const ACCOUNTS: { id: AccountId; label: string; kind: AccountKind; hint?:
 
 export const EXPENSE_ACCOUNTS: AccountId[] = ACCOUNTS.filter((a) => a.kind === 'expense').map((a) => a.id);
 
-/** 経費の支払方法（表示名は PAYMENT_LABELS） */
-export const PAYMENT_ACCOUNTS: AccountId[] = ['cash', 'bank', 'ownerLoan'];
-export const PAYMENT_LABELS: Partial<Record<AccountId, string>> = {
-  cash: '現金',
-  bank: '普通預金',
-  ownerLoan: '個人のお金',
-};
+/** 経費の支払方法と、貸方に記入する科目 */
+export const PAYMENT_METHODS: { id: PaymentMethod; label: string; account: AccountId }[] = [
+  { id: 'cash', label: '現金', account: 'cash' },
+  { id: 'bank', label: '普通預金', account: 'bank' },
+  { id: 'personal', label: '個人のお金', account: 'ownerLoan' },
+  { id: 'card', label: 'クレカ', account: 'ownerLoan' },
+  { id: 'paypay', label: 'PayPay', account: 'ownerLoan' },
+  { id: 'ic', label: '交通系IC', account: 'ownerLoan' },
+];
+
+/** 経費の支払方法。支払方法のない以前の経費は貸方の科目から判断する。経費以外は undefined */
+export function paymentOf(tx: Transaction): PaymentMethod | undefined {
+  if (tx.kind !== 'expense') return undefined;
+  if (tx.payment) return tx.payment;
+  return tx.credit === 'cash' ? 'cash' : tx.credit === 'bank' ? 'bank' : 'personal';
+}
+
+export function paymentLabel(method: PaymentMethod): string {
+  return PAYMENT_METHODS.find((m) => m.id === method)!.label;
+}
 
 export function accountLabel(id: AccountId): string {
   return ACCOUNTS.find((a) => a.id === id)!.label;
