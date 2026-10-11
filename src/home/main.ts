@@ -16,20 +16,15 @@ const updateEntryLink = () => {
 updateEntryLink();
 entryLink.addEventListener('click', updateEntryLink);
 
-// 次の開催日の1開催目を午前、2開催目を午後のマッチングサイトに割り当てる
+// マッチングサイトのカードに次の開催日の開催地を並べる
 const day = nextEventDay(data.events, new Date());
-const slots = [
-  document.querySelector<HTMLElement>('#matching-am')!,
-  document.querySelector<HTMLElement>('#matching-pm')!,
-];
-slots.forEach((slot, i) => {
-  if (!day) {
-    slot.textContent = '予定されている大会はありません';
-    return;
-  }
-  const event = day.events[i];
-  slot.replaceChildren(`${formatEventDate(day.date)} `, event ? venueLink(event) : '開催なし');
-});
+const matchingEvents = document.querySelector<HTMLElement>('#matching-events')!;
+if (day) {
+  const venues = day.events.flatMap((event, i) => (i === 0 ? [venueLink(event)] : [' / ', venueLink(event)]));
+  matchingEvents.replaceChildren(`${formatEventDate(day.date)} `, ...venues);
+} else {
+  matchingEvents.textContent = '予定されている大会はありません';
+}
 
 /** 大会詳細ページ（dmp-ranking.com）を別タブで開く開催地のリンク */
 function venueLink(event: ScheduleEvent): HTMLElement {

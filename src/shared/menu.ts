@@ -13,8 +13,7 @@ export const SITE_PAGES: { id: PageId; href: string; label: string }[] = [
 
 /** サイト外のリンク（ページ一覧の下に区切って並べ、新しいタブで開く） */
 export const EXTERNAL_LINKS: { href: string; label: string }[] = [
-  { href: 'https://sugatool.nojigikucs.com/events/19ae5c13-ae91-4c0d-abf2-81e6db52ebce/entries', label: 'マッチングサイト（午前）' },
-  { href: 'https://sugatool.nojigikucs.com/events/c8a0106d-f727-4c4d-8183-df3156537635/entries', label: 'マッチングサイト（午後）' },
+  { href: 'https://sugatool.nojigikucs.com/orgs/will_o_wisp_cs', label: 'マッチングサイト' },
 ];
 
 /** 上部の帯（.site-header）の右端にハンバーガーボタンとページメニューを付ける */
