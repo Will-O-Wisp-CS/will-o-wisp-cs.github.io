@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-11T19:20:31.047Z",
+  "updatedAt": "2026-10-12T22:23:28.082Z",
   "events": [
     {
       "date": "2026-10-04",
@@ -120,12 +120,30 @@
     },
     {
       "date": "2026-11-22",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 104,
+      "start": "17:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-22",
       "venue": "竜星のPAO千葉中央店",
       "format": "オリジナル",
       "entryType": "個人",
       "capacity": 64,
       "start": "10:30",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=351&Seq=2"
+    },
+    {
+      "date": "2026-11-26",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "17:40",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=351&Seq=2"
     },
     {
       "date": "2026-11-28",
