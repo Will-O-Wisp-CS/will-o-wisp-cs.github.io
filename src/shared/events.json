@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-13T20:30:12.428Z",
+  "updatedAt": "2026-10-14T19:10:44.862Z",
   "events": [
     {
       "date": "2026-10-04",
@@ -102,6 +102,15 @@
     },
     {
       "date": "2026-11-08",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-08",
       "venue": "フルコンプ千葉店",
       "format": "オリジナル",
       "entryType": "個人",
@@ -144,6 +153,15 @@
       "capacity": 64,
       "start": "11:30",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=181&EventID=351&Seq=1"
+    },
+    {
+      "date": "2026-11-28",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=351&Seq=2"
     },
     {
       "date": "2026-11-28",
