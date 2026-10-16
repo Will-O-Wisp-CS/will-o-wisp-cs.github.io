@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-15T18:53:00.569Z",
+  "updatedAt": "2026-10-16T18:37:16.784Z",
   "events": [
     {
       "date": "2026-10-04",
@@ -101,15 +101,6 @@
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=351&Seq=1"
     },
     {
-      "date": "2026-11-08",
-      "venue": "フルコンプ千葉店",
-      "format": "オリジナル",
-      "entryType": "個人",
-      "capacity": 64,
-      "start": "15:50",
-      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=1"
-    },
-    {
       "date": "2026-11-22",
       "venue": "晴れる屋3",
       "format": "オリジナル",
@@ -153,15 +144,6 @@
       "capacity": 128,
       "start": "15:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=3579&EventID=351&Seq=2"
-    },
-    {
-      "date": "2026-11-29",
-      "venue": "フルコンプ千葉店",
-      "format": "オリジナル",
-      "entryType": "個人",
-      "capacity": 64,
-      "start": "15:50",
-      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=2"
     }
   ]
 }
