@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-17T17:45:56.976Z",
+  "updatedAt": "2026-10-20T18:54:50.091Z",
   "months": [
     "2026-01",
     "2026-02",
@@ -875,6 +875,24 @@
       "capacity": 64,
       "start": "12:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=2"
+    },
+    {
+      "date": "2026-12-13",
+      "venue": "TSUTAYAレイクタウン",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "14:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=1"
+    },
+    {
+      "date": "2026-12-29",
+      "venue": "TSUTAYAレイクタウン",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "14:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=2"
     }
   ]
 }
