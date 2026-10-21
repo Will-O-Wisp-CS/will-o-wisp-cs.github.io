@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-20T18:54:50.091Z",
+  "updatedAt": "2026-10-21T19:06:53.851Z",
   "months": [
     "2026-01",
     "2026-02",
@@ -819,7 +819,7 @@
       "format": "オリジナル",
       "entryType": "個人",
       "capacity": 64,
-      "start": "10:30",
+      "start": "15:50",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=351&Seq=2"
     },
     {
@@ -882,7 +882,7 @@
       "format": "オリジナル",
       "entryType": "個人",
       "capacity": 64,
-      "start": "14:30",
+      "start": "14:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=1"
     },
     {
@@ -891,7 +891,7 @@
       "format": "オリジナル",
       "entryType": "個人",
       "capacity": 64,
-      "start": "14:30",
+      "start": "12:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=2"
     }
   ]
