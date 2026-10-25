@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-24T17:50:12.702Z",
+  "updatedAt": "2026-10-25T18:08:24.015Z",
   "months": [
     "2026-01",
     "2026-02",
@@ -877,6 +877,33 @@
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=2"
     },
     {
+      "date": "2026-12-05",
+      "venue": "竜星のPAO千葉中央店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=353&Seq=1"
+    },
+    {
+      "date": "2026-12-06",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=353&Seq=1"
+    },
+    {
+      "date": "2026-12-06",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 104,
+      "start": "17:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=353&Seq=2"
+    },
+    {
       "date": "2026-12-12",
       "venue": "竜星のPAO秋葉原ロケット無線店",
       "format": "オリジナル",
@@ -884,6 +911,15 @@
       "capacity": 128,
       "start": "10:40",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4466&EventID=353&Seq=2"
+    },
+    {
+      "date": "2026-12-13",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=353&Seq=2"
     },
     {
       "date": "2026-12-13",
@@ -902,6 +938,24 @@
       "capacity": 64,
       "start": "14:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=1"
+    },
+    {
+      "date": "2026-12-19",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=353&Seq=1"
+    },
+    {
+      "date": "2026-12-26",
+      "venue": "竜星のPAO千葉中央店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3746&EventID=353&Seq=2"
     },
     {
       "date": "2026-12-26",
