@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-25T18:08:24.015Z",
+  "updatedAt": "2026-10-26T20:18:32.849Z",
   "months": [
     "2026-01",
     "2026-02",
@@ -877,6 +877,15 @@
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4407&EventID=351&Seq=2"
     },
     {
+      "date": "2026-12-01",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "17:50",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3843&EventID=353&Seq=1"
+    },
+    {
       "date": "2026-12-05",
       "venue": "竜星のPAO千葉中央店",
       "format": "オリジナル",
@@ -902,6 +911,15 @@
       "capacity": 104,
       "start": "17:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=353&Seq=2"
+    },
+    {
+      "date": "2026-12-08",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "17:50",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=3843&EventID=353&Seq=2"
     },
     {
       "date": "2026-12-12",
