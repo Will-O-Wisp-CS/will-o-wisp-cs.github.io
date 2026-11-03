@@ -36,9 +36,9 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
   home/      メインページ: main.ts(メニュー・参加表明リンク・マッチングサイトに割り当てる大会) / icon.jpg(公式Xのアイコン)
   finals/    進出人数計算: index.html / main.ts(DOM) / input.ts / tournament.ts / swiss.ts / finals.ts / format.ts
   points/    ポイント計算: index.html / main.ts(DOM) / input.ts / points.ts
-  schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / calendar.ts(祝日) / fetch.ts(Node専用の取得スクリプト) / archive.ts(大会の記録) / csv.ts + export-csv.ts(月別 CSV 出力)
+  schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / fetch.ts(Node専用の取得スクリプト) / archive.ts(大会の記録) / csv.ts + export-csv.ts(月別 CSV 出力)
   tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / busy.ts(保存中の表示) / queue.ts(保存の順番待ち) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
-  shared/    全ページ共通: dom.ts(el, card) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / events-archive.json(大会の記録。過去の月も含む) / style.css
+  shared/    全ページ共通: dom.ts(el, card) / calendar.ts(祝日) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / events-archive.json(大会の記録。過去の月も含む) / style.css
 ルート直下のファイル   package.json, package-lock.json, tsconfig.json, vite.config.ts, .gitignore のみ
 ```
 
@@ -75,7 +75,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 ### 大会スケジュール（詳細は docs/superpowers/specs/2026-09-29-cs-schedule-design.md）
 - 取得元は `schedule.asp` を大会名「鬼火」、開始日＝JSTの当月1日で検索した結果（Shift_JIS）
 - 承認「◎」以外は載せない。開催地は大会名「鬼火CS in ○○」の ○○。受付は開始の20分前〜開始
-- 開催日は黒文字＋マーカー（土＝青 / 日＝赤 / 祝日＝黄 / 平日＝なし、祝日優先）。祝日は外部データを使わず `calendar.ts` で計算する
+- 開催日は黒文字＋マーカー（土＝青 / 日＝赤 / 祝日＝黄 / 平日＝なし、祝日優先）。祝日は外部データを使わず `shared/calendar.ts` で計算する
 - 参加表明は開催日14日前の20:00 JST〜大会開始時刻。ページを開いた時点で判定する
 - 大会がすべて開催済みになった月は表示しない
 - `fetch.ts`・`export-csv.ts` は Node で型を取り除いて直接実行するため、これらから import されるファイル内の import は `.ts` 拡張子付きで書く

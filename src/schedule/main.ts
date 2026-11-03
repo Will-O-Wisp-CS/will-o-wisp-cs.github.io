@@ -4,7 +4,7 @@ import { buildEntryUrl } from '../shared/entryLink';
 import { mountSiteMenu } from '../shared/menu';
 import data from '../shared/events.json';
 import { formatEventDate, type ScheduleEvent } from '../shared/events';
-import { dayKind } from './calendar';
+import { dayKind } from '../shared/calendar';
 import { activeMonths, entryStatus, groupByMonth, receptionWindow, type EntryStatus, type MonthGroup } from './schedule';
 
 const schedule = document.querySelector<HTMLDivElement>('#schedule')!;
