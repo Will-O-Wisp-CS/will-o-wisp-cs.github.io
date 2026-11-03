@@ -18,15 +18,17 @@ import * as store from './store';
 import { button, field, input, showErrors } from './ui';
 import * as homeView from './view-home';
 import * as inputView from './view-input';
+import * as judgesView from './view-judges';
 import * as listView from './view-list';
 import * as reportView from './view-report';
 import * as settingsView from './view-settings';
 
-type Tab = 'home' | 'input' | 'list' | 'report' | 'settings';
+type Tab = 'home' | 'input' | 'list' | 'judges' | 'report' | 'settings';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'home', label: 'ホーム' },
   { id: 'input', label: '入力' },
   { id: 'list', label: '一覧' },
+  { id: 'judges', label: 'ジャッジ' },
   { id: 'report', label: '決算' },
   { id: 'settings', label: '設定' },
 ];
@@ -202,9 +204,12 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
   if (loaded.openingChanged || JSON.stringify(merged.events) !== JSON.stringify(ledger.data.events)) {
     ledger = await store.saveLedger({ ...ledger, data: merged });
   }
+  const judges = await store.loadJudges();
   app = {
     settings,
     ledger,
+    schedule,
+    judges,
     openingLocked,
     inputContext: null,
     save: (update) => {
@@ -244,6 +249,23 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
       });
       // ついでの更新（failureNote あり）は裏で行い、待ち表示は出さない
       return failureNote ? run() : busy(run, '保存しています…');
+    },
+    saveJudges: (update) => {
+      const fresh = drive.ensureFresh();
+      return busy(() => serial(async () => {
+        try {
+          await fresh;
+          app!.judges = await store.saveJudges({ ...app!.judges, data: update(app!.judges.data) });
+          showStatus('');
+          return true;
+        } catch (e) {
+          showError(e);
+          return false;
+        } finally {
+          // 失敗したときは入力欄を保存前の値に戻す
+          render();
+        }
+      }), '保存しています…');
     },
     openSaleForm: (eventId) => {
       app!.inputContext = { mode: 'sale', eventId };
@@ -292,7 +314,7 @@ function setTab(next: Tab): void {
 function render(): void {
   if (!app) return;
   viewEl.replaceChildren();
-  const views = { home: homeView, input: inputView, list: listView, report: reportView, settings: settingsView };
+  const views = { home: homeView, input: inputView, list: listView, judges: judgesView, report: reportView, settings: settingsView };
   views[tab].render(viewEl, app);
 }
 
