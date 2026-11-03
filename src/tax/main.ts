@@ -256,14 +256,13 @@ async function start(settings: store.Loaded<Settings>, loaded: store.LoadedLedge
         try {
           await fresh;
           app!.judges = await store.saveJudges({ ...app!.judges, data: update(app!.judges.data) });
-          showStatus('');
+          // 成功したときは再描画しない（保存の間に次の欄へ打ち始めた名前とフォーカスを消さないため）
           return true;
         } catch (e) {
           showError(e);
-          return false;
-        } finally {
-          // 失敗したときは入力欄を保存前の値に戻す
+          // 入力欄を保存前の値に戻す
           render();
+          return false;
         }
       }), '保存しています…');
     },

@@ -23,7 +23,7 @@ export type App = {
   save(update: (ledger: Ledger) => Ledger): Promise<boolean>;
   /** failureNote を渡すと、失敗してもエラーにせずその文を出す（ついでの更新用） */
   saveSettings(update: (settings: Settings) => Settings, failureNote?: string): Promise<boolean>;
-  /** 最新の割り当てに update をかけて保存する。成功・失敗とも再描画し、「保存しました」もスクロールもしない */
+  /** 最新の割り当てに update をかけて保存する。失敗したときだけ再描画する（入力欄を保存前の値に戻す）。「保存しました」もスクロールもしない */
   saveJudges(update: (judges: Judges) => Judges): Promise<boolean>;
   /** 入力タブを開き、その開催の売上フォームにする */
   openSaleForm(eventId: string): void;
