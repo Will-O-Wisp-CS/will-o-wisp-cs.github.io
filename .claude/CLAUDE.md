@@ -37,7 +37,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
   finals/    進出人数計算: index.html / main.ts(DOM) / input.ts / tournament.ts / swiss.ts / finals.ts / format.ts
   points/    ポイント計算: index.html / main.ts(DOM) / input.ts / points.ts
   schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / fetch.ts(Node専用の取得スクリプト) / archive.ts(大会の記録) / csv.ts + export-csv.ts(月別 CSV 出力)
-  tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / busy.ts(保存中の表示) / queue.ts(保存の順番待ち) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
+  tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / busy.ts(保存中の表示) / queue.ts(保存の順番待ち) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / judges.ts + view-judges.ts(ジャッジの割り当て) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
   shared/    全ページ共通: dom.ts(el, card) / calendar.ts(祝日) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / events-archive.json(大会の記録。過去の月も含む) / style.css
 ルート直下のファイル   package.json, package-lock.json, tsconfig.json, vite.config.ts, .gitignore のみ
 ```
@@ -94,4 +94,5 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - ログイン・読み込み・帳簿の作成・保存の間は、画面の前面にスピナーと文言（「ログインしています…」「読み込んでいます…」「保存しています…」など。`busy.ts`）を出してほかの操作を止める。売上のついでの参加費の初期値の更新は裏で行い出さない。帳簿の保存に成功したらページ上部に戻って「保存しました」を出す
 - 開催の ID は大会詳細ページの URL。帳簿は `events-archive.json` と `events.json` を合わせて取り込む。どちらから消えた開催も帳簿には残す
 - 保存前にドライブ上の中身の `rev`（保存ごとに +1）を比べ、違えば保存しない（他の端末での更新）。ドライブのファイルの version は勝手に増えるので使わない
+- ジャッジタブは開催ごとの HJ・FJ を `judges.json`（帳簿とは別ファイル。`rev` の比較は同じ、バックアップなし）に保存する。表は今月以降の開催を月ごとに出し、受付開始は開始の20分前。プルダウンの候補は設定の `judgeNames`、会場名の色は設定の `venueColors`。手入力した名前は候補に足さない（詳細は docs/superpowers/specs/2026-11-03-judge-assignments-design.md）
 - `backup/` に直前の版を残すのは、ページを開いて最初の保存とその後1時間ごと（年ごとに30件）。保存のたびに取ると遅いため。領収書は同時にアップロードし、フォルダはログイン後に先読みする
