@@ -419,36 +419,38 @@ details.tax-details summary {
   overflow-x: auto;
 }
 
-.tax-judges {
-  min-width: 640px;
-}
-
 .tax-judges th,
 .tax-judges td {
   white-space: nowrap;
   vertical-align: middle;
 }
 
-.tax-judges td.day-saturday span,
-.tax-judges td.day-sunday span,
-.tax-judges td.day-holiday span {
+/* 会場名は折り返して、表をカードの幅に収める */
+.tax-judges td:nth-child(3) {
+  white-space: normal;
+  min-width: 6em;
+}
+
+.tax-judge-day.day-saturday,
+.tax-judge-day.day-sunday,
+.tax-judge-day.day-holiday {
   background: linear-gradient(transparent 35%, var(--marker) 35%);
 }
 
-.tax-judges td.day-saturday {
+.tax-judge-day.day-saturday {
   --marker: var(--saturday-marker);
 }
 
-.tax-judges td.day-sunday {
+.tax-judge-day.day-sunday {
   --marker: var(--sunday-marker);
 }
 
-.tax-judges td.day-holiday {
+.tax-judge-day.day-holiday {
   --marker: var(--holiday-marker);
 }
 
 .tax-judges input {
-  width: 7.5em;
+  width: 6.5em;
   min-height: 36px;
   height: 36px;
   padding: 4px 6px;
@@ -460,12 +462,15 @@ details.tax-details summary {
 
 .tax-judge-fj {
   display: flex;
+  flex-direction: column;
   gap: 4px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .tax-judge-add {
-  padding: 2px 10px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 0.85rem;
 }
 
 .tax-judge-cancelled td {
@@ -497,3 +502,23 @@ details.tax-details summary {
 .tax-venue-blue { --venue-bg: #1d4ed8; --venue-fg: #fff; }
 .tax-venue-purple { --venue-bg: #ddd6fe; --venue-fg: #4c1d95; }
 .tax-venue-pink { --venue-bg: #fbcfe8; --venue-fg: #831843; }
+
+@media (max-width: 480px) {
+  .tax-judges {
+    font-size: 0.8rem;
+  }
+
+  .tax-judges th,
+  .tax-judges td {
+    padding: 6px 2px;
+  }
+
+  .tax-judges input {
+    width: 4.5em;
+  }
+
+  .tax-venue {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+  }
+}

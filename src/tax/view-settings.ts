@@ -1,7 +1,7 @@
 import { el } from '../shared/dom';
 import type { App } from './app';
 import { parseAmount } from './journal';
-import { addJudgeName, moveItem, venuesOf } from './judges';
+import { addJudgeName, moveItem, venueColorOf, venuesOf } from './judges';
 import { accountLabel, expenseOrderOf, VENUE_COLORS, type AccountId, type VenueColor } from './ledger';
 import { parseTravelTemplate, travelTemplatesOf } from './travel';
 import { button, field, input, select, showErrors } from './ui';
@@ -197,21 +197,19 @@ function judgeNamesCard(app: App): HTMLElement {
 function venueColorsCard(app: App): HTMLElement {
   const card = el('section', '', 'card');
   card.append(el('h2', '会場の色', 'card-title'));
-  card.append(el('p', 'ジャッジタブの会場名の色です', 'note'));
+  card.append(el('p', 'ジャッジタブの会場名の色です。主な会場には初めから色が付いています', 'note'));
   const list = el('ul', '', 'tax-list');
-  const options = [{ value: '', label: 'なし' }, ...VENUE_COLORS.map((c) => ({ value: c, label: VENUE_COLOR_LABELS[c] }))];
+  const options = [{ value: 'none', label: 'なし' }, ...VENUE_COLORS.map((c) => ({ value: c, label: VENUE_COLOR_LABELS[c] }))];
   for (const venue of venuesOf(app.schedule)) {
     const item = el('li', '', 'tax-item');
     const head = el('div', '', 'tax-item-head');
-    const current = app.settings.data.venueColors?.[venue];
-    head.append(el('span', venue, `tax-venue tax-venue-${current ?? 'none'}`));
-    const colorSel = select(options, current ?? '');
+    const current = venueColorOf(app.settings.data, venue);
+    head.append(el('span', venue, `tax-venue tax-venue-${current}`));
+    const colorSel = select(options, current);
     colorSel.setAttribute('aria-label', `${venue}の色`);
     colorSel.addEventListener('change', () => {
-      void app.saveSettings((s) => {
-        const { [venue]: _, ...rest } = s.venueColors ?? {};
-        return { ...s, venueColors: colorSel.value ? { ...rest, [venue]: colorSel.value as VenueColor } : rest };
-      });
+      // 「なし」も 'none' として残す（消すと初期値の色に戻ってしまうため）
+      void app.saveSettings((s) => ({ ...s, venueColors: { ...s.venueColors, [venue]: colorSel.value as VenueColor | 'none' } }));
     });
     head.append(colorSel);
     item.append(head);

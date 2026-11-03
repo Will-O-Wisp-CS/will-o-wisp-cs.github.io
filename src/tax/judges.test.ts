@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ScheduleEvent } from '../shared/events';
-import { addJudgeName, judgeMonths, moveItem, receptionTime, setAssignment, venuesOf } from './judges';
+import { addJudgeName, judgeMonths, moveItem, receptionTime, setAssignment, venueColorOf, venuesOf } from './judges';
 import type { Judges, LedgerEvent } from './ledger';
 
 function ev(date: string, start: string, venue: string, id = `${date}-${start}`): ScheduleEvent {
@@ -38,7 +38,7 @@ describe('judgeMonths', () => {
 
   it('行に開催日・曜日・受付開始時刻・会場を入れる（祝日を優先）', () => {
     const row = judgeMonths(events, empty, [], '2026-11-03', false)[0].rows[0];
-    expect(row).toMatchObject({ date: '26/11/03', weekday: '火', dayKind: 'holiday', reception: '10:10', venue: '竜星のPAO千葉中央店' });
+    expect(row).toMatchObject({ date: '11/03', weekday: '火', dayKind: 'holiday', reception: '10:10', venue: '竜星のPAO千葉中央店' });
     const sunday = judgeMonths(events, empty, [], '2026-11-03', false)[0].rows[2];
     expect(sunday).toMatchObject({ weekday: '日', dayKind: 'sunday' });
   });
@@ -109,5 +109,23 @@ describe('moveItem', () => {
     const moved = moveItem(list, 0, -1);
     expect(moved).toEqual(['a', 'b']);
     expect(moved).not.toBe(list);
+  });
+});
+
+describe('venueColorOf', () => {
+  it('設定で選んでいない会場は、スプレッドシートと同じ初期値の色にする', () => {
+    expect(venueColorOf({}, '竜星のPAO千葉中央店')).toBe('yellow');
+    expect(venueColorOf({}, 'フルコンプ千葉店')).toBe('green');
+    expect(venueColorOf({}, '晴れる屋3')).toBe('teal');
+    expect(venueColorOf({}, 'フルコンプ本厚木店')).toBe('blue');
+    expect(venueColorOf({}, '竜星のPAO秋葉原ロケット無線店')).toBe('red');
+    expect(venueColorOf({}, '竜星の嵐新宿店')).toBe('none');
+  });
+  it('初期値のない会場は none', () => {
+    expect(venueColorOf({}, 'PAO千葉中央店')).toBe('none');
+  });
+  it('設定で選んだ色（なしも含む）を初期値より優先する', () => {
+    expect(venueColorOf({ venueColors: { 'フルコンプ千葉店': 'pink' } }, 'フルコンプ千葉店')).toBe('pink');
+    expect(venueColorOf({ venueColors: { 'フルコンプ千葉店': 'none' } }, 'フルコンプ千葉店')).toBe('none');
   });
 });

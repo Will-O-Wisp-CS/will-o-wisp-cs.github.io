@@ -1,7 +1,7 @@
 import { el } from '../shared/dom';
 import type { App } from './app';
 import { todayJst } from './format';
-import { judgeMonths, setAssignment, type JudgeRow } from './judges';
+import { judgeMonths, setAssignment, venueColorOf, type JudgeRow } from './judges';
 import { button, input, table } from './ui';
 
 /** 過去の開催を表示するか（タブを移っても保つ。保存はしない） */
@@ -44,14 +44,11 @@ export function render(root: HTMLElement, app: App): void {
     const card = el('section', '', 'card');
     card.append(el('h2', month.label, 'card-title'));
     const rows = month.rows.map((row) => rowCells(row, app));
-    const t = table(['開催日', '曜日', '受付開始', '会場名', 'HJ', 'FJ'], rows);
+    const t = table(['開催日', '受付', '会場名', 'HJ', 'FJ'], rows);
     t.classList.add('tax-judges');
-    // 中止・曜日の色は行・セルのクラスで付ける（table() は中身だけ作るので後から足す）
+    // 中止の行はクラスで薄くする（table() は中身だけ作るので後から足す）
     t.querySelectorAll('tr').forEach((tr, i) => {
-      if (i === 0) return;
-      const row = month.rows[i - 1];
-      if (row.cancelled) tr.classList.add('tax-judge-cancelled');
-      tr.children[1].classList.add(`day-${row.dayKind}`);
+      if (i > 0 && month.rows[i - 1].cancelled) tr.classList.add('tax-judge-cancelled');
     });
     const scroll = el('div', '', 'tax-judges-scroll');
     scroll.append(t);
@@ -67,7 +64,7 @@ function nameInput(value: string, label: string): HTMLInputElement {
 }
 
 function rowCells(row: JudgeRow, app: App): (string | Node)[] {
-  const venue = el('span', row.venue, `tax-venue tax-venue-${app.settings.data.venueColors?.[row.venue] ?? 'none'}`);
+  const venue = el('span', row.venue, `tax-venue tax-venue-${venueColorOf(app.settings.data, row.venue)}`);
   const venueCell = el('span', '');
   venueCell.append(venue);
   if (row.cancelled) venueCell.append(el('span', '中止', 'tax-judge-cancelled-badge'));
@@ -92,6 +89,8 @@ function rowCells(row: JudgeRow, app: App): (string | Node)[] {
   }
   hj.addEventListener('change', save);
 
-  const day = el('span', row.weekday);
-  return [row.date, day, row.reception, venueCell, hj, fjBox];
+  // 曜日は開催日の列にまとめ、土日祝はマーカーを付ける
+  const date = el('span', `${row.date}(`);
+  date.append(el('span', row.weekday, `tax-judge-day day-${row.dayKind}`), ')');
+  return [date, row.reception, venueCell, hj, fjBox];
 }
