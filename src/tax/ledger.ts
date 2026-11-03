@@ -77,8 +77,8 @@ export type Settings = {
   travelTemplates?: TravelTemplate[];
   /** ジャッジの名前（プルダウンの候補の並び。追加前の設定にはない） */
   judgeNames?: string[];
-  /** 会場 → 色（追加前の設定にはない） */
-  venueColors?: Record<string, VenueColor>;
+  /** 会場 → 色。'none' はグレー（初期値の色を消すとき）。追加前の設定にはない */
+  venueColors?: Record<string, VenueColor | 'none'>;
   /** 保存のたびに1増やす（Ledger.rev と同じ） */
   rev?: number;
 };

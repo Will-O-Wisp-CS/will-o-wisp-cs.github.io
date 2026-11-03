@@ -1,12 +1,12 @@
 import { dayKind, type DayKind } from '../shared/calendar';
 import type { ScheduleEvent } from '../shared/events';
-import type { JudgeAssignment, Judges, LedgerEvent } from './ledger';
+import type { JudgeAssignment, Judges, LedgerEvent, Settings, VenueColor } from './ledger';
 
 /** ジャッジタブの表の1行 */
 export type JudgeRow = {
   /** 大会詳細ページの URL */
   id: string;
-  /** '26/11/03' */
+  /** '11/03'（年は月の見出しに出す） */
   date: string;
   /** '火' */
   weekday: string;
@@ -25,6 +25,20 @@ export type JudgeMonth = { label: string; rows: JudgeRow[] };
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 /** 受付は開始の20分前から */
 const RECEPTION_MINUTES = 20;
+
+/** 設定で色を選んでいない会場の色（主催者のスプレッドシートの色）。会場名は取得結果の表記のまま */
+const DEFAULT_VENUE_COLORS: Record<string, VenueColor> = {
+  '竜星のPAO千葉中央店': 'yellow',
+  'フルコンプ千葉店': 'green',
+  '晴れる屋3': 'teal',
+  'フルコンプ本厚木店': 'blue',
+  '竜星のPAO秋葉原ロケット無線店': 'red',
+};
+
+/** 会場名の札の色。設定の色（'none' も含む）→ 初期値 → 'none' の順 */
+export function venueColorOf(settings: Pick<Settings, 'venueColors'>, venue: string): VenueColor | 'none' {
+  return settings.venueColors?.[venue] ?? DEFAULT_VENUE_COLORS[venue] ?? 'none';
+}
 
 /** 受付開始時刻（開始の20分前） */
 export function receptionTime(start: string): string {
@@ -50,7 +64,7 @@ export function judgeMonths(events: ScheduleEvent[], judges: Judges, ledgerEvent
     if (months.at(-1)?.label !== label) months.push({ label, rows: [] });
     months.at(-1)!.rows.push({
       id: e.url,
-      date: `${e.date.slice(2, 4)}/${e.date.slice(5, 7)}/${e.date.slice(8, 10)}`,
+      date: `${e.date.slice(5, 7)}/${e.date.slice(8, 10)}`,
       weekday: WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()],
       dayKind: dayKind(e.date),
       reception: receptionTime(e.start),
