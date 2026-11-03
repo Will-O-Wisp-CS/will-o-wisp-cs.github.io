@@ -1,4 +1,5 @@
-import type { Ledger, Settings } from './ledger';
+import type { ScheduleEvent } from '../shared/events';
+import type { Judges, Ledger, Settings } from './ledger';
 import type { Loaded } from './store';
 
 /** 入力タブを開いたときのフォーム（売上の開催、または編集する取引） */
@@ -8,6 +9,9 @@ export type InputContext = { mode: 'sale'; eventId: string } | { mode: 'edit'; i
 export type App = {
   settings: Loaded<Settings>;
   ledger: Loaded<Ledger>;
+  /** 大会の記録と今の大会スケジュールを合わせた一覧 */
+  schedule: ScheduleEvent[];
+  judges: Loaded<Judges>;
   /** 入力タブのフォーム。保存に成功したら入力画面側で null に戻す */
   inputContext: InputContext;
   /** 前年の帳簿があり、期首残高は前年の期末から自動で決まる */
@@ -19,6 +23,8 @@ export type App = {
   save(update: (ledger: Ledger) => Ledger): Promise<boolean>;
   /** failureNote を渡すと、失敗してもエラーにせずその文を出す（ついでの更新用） */
   saveSettings(update: (settings: Settings) => Settings, failureNote?: string): Promise<boolean>;
+  /** 最新の割り当てに update をかけて保存する。失敗したときだけ再描画する（入力欄を保存前の値に戻す）。「保存しました」もスクロールもしない */
+  saveJudges(update: (judges: Judges) => Judges): Promise<boolean>;
   /** 入力タブを開き、その開催の売上フォームにする */
   openSaleForm(eventId: string): void;
   /** 入力タブで取引を編集する */

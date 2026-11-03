@@ -1,5 +1,5 @@
 import * as drive from './drive';
-import { DEFAULT_SETTINGS, type Ledger, type Receipt, type Settings, type Transaction } from './ledger';
+import { DEFAULT_SETTINGS, type Judges, type Ledger, type Receipt, type Settings, type Transaction } from './ledger';
 import { extensionOf, receiptFileName, resizeImage } from './receipt';
 import { nextOpening } from './report';
 
@@ -7,6 +7,7 @@ import { nextOpening } from './report';
 
 const ROOT = '鬼火CS帳簿';
 const SETTINGS = 'settings.json';
+const JUDGES = 'judges.json';
 const BACKUP_KEEP = 30;
 /** バックアップの間隔。保存のたびに取ると遅いので、開いて最初の保存とその後1時間ごとにする */
 const BACKUP_INTERVAL_MS = 60 * 60 * 1000;
@@ -88,6 +89,21 @@ export async function loadSettings(today: string): Promise<Loaded<Settings>> {
 
 export async function saveSettings(s: Loaded<Settings>): Promise<Loaded<Settings>> {
   return saveChecked(s);
+}
+
+/** ジャッジの割り当て。なければ空で作る（設定と同じ） */
+export async function loadJudges(): Promise<Loaded<Judges>> {
+  const parent = await root();
+  const file = await drive.findFile(parent, JUDGES);
+  if (file) return loaded(await drive.readJson<Judges>(file.id), file.id);
+  const data: Judges = { assignments: {} };
+  const created = await drive.createJson(parent, JUDGES, data);
+  return loaded(data, created.id);
+}
+
+/** 帳簿ほど重くないのでバックアップは取らない */
+export async function saveJudges(j: Loaded<Judges>): Promise<Loaded<Judges>> {
+  return saveChecked(j);
 }
 
 /**

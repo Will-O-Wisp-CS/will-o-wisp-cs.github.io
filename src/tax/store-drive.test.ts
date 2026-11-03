@@ -162,3 +162,35 @@ describe('フォルダの先読み', () => {
     expect(drive.ensureFolder).not.toHaveBeenCalled();
   });
 });
+
+describe('ジャッジの割り当て', () => {
+  it('judges.json がなければ空で作る', async () => {
+    files({});
+    vi.mocked(drive.createJson).mockResolvedValue({ id: 'j', name: 'judges.json', version: '1' } as never);
+    const loaded = await store.loadJudges();
+    expect(drive.createJson).toHaveBeenCalledWith('root', 'judges.json', { assignments: {} });
+    expect(loaded).toEqual({ data: { assignments: {} }, fileId: 'j', version: '0' });
+  });
+
+  it('あればその中身と rev を読む', async () => {
+    const data = { assignments: { a: { hj: 'たか', fj: [] } }, rev: 3 };
+    files({ 'judges.json': { id: 'j', data } });
+    const loaded = await store.loadJudges();
+    expect(loaded).toEqual({ data, fileId: 'j', version: '3' });
+  });
+
+  it('ドライブ上の rev が違えば保存しない', async () => {
+    files({ 'judges.json': { id: 'j', data: { assignments: {}, rev: 5 } } });
+    await expect(store.saveJudges({ data: { assignments: {}, rev: 3 }, fileId: 'j', version: '3' })).rejects.toBeInstanceOf(store.ConflictError);
+    expect(drive.updateJson).not.toHaveBeenCalled();
+  });
+
+  it('同じなら rev を1進めて保存し、バックアップは取らない', async () => {
+    files({ 'judges.json': { id: 'j', data: { assignments: {}, rev: 3 } } });
+    const data = { assignments: { a: { hj: 'たか', fj: ['3Can'] } }, rev: 3 };
+    const saved = await store.saveJudges({ data, fileId: 'j', version: '3' });
+    expect(drive.updateJson).toHaveBeenCalledWith('j', { ...data, rev: 4 });
+    expect(drive.copyFile).not.toHaveBeenCalled();
+    expect(saved.version).toBe('4');
+  });
+});

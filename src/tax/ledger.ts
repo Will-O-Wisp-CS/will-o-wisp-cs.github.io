@@ -75,9 +75,28 @@ export type Settings = {
   expenseOrder: AccountId[];
   /** 旅費交通費のテンプレ（追加前の設定にはない） */
   travelTemplates?: TravelTemplate[];
+  /** ジャッジの名前（プルダウンの候補の並び。追加前の設定にはない） */
+  judgeNames?: string[];
+  /** 会場 → 色（追加前の設定にはない） */
+  venueColors?: Record<string, VenueColor>;
   /** 保存のたびに1増やす（Ledger.rev と同じ） */
   rev?: number;
 };
+
+/** 1開催のジャッジの割り当て */
+export type JudgeAssignment = { hj: string; fj: string[] };
+
+/** ジャッジの割り当て（ドライブの judges.json） */
+export type Judges = {
+  /** 開催 ID（大会詳細ページの URL）→ 割り当て */
+  assignments: Record<string, JudgeAssignment>;
+  /** 保存のたびに1増やす（Ledger.rev と同じ） */
+  rev?: number;
+};
+
+/** 会場の色。表示は tax.css の --venue-* */
+export const VENUE_COLORS = ['red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink'] as const;
+export type VenueColor = (typeof VENUE_COLORS)[number];
 
 /** 勘定科目の一覧。表示名は決算書の科目名 */
 export const ACCOUNTS: { id: AccountId; label: string; kind: AccountKind; hint?: string }[] = [

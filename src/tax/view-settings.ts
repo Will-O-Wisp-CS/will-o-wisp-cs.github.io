@@ -1,11 +1,23 @@
 import { el } from '../shared/dom';
 import type { App } from './app';
 import { parseAmount } from './journal';
-import { accountLabel, expenseOrderOf, type AccountId } from './ledger';
+import { addJudgeName, moveItem, venuesOf } from './judges';
+import { accountLabel, expenseOrderOf, VENUE_COLORS, type AccountId, type VenueColor } from './ledger';
 import { parseTravelTemplate, travelTemplatesOf } from './travel';
-import { button, field, input, showErrors } from './ui';
+import { button, field, input, select, showErrors } from './ui';
 
-/** 設定: 記帳開始日・参加費の初期値・経費科目の並び・期首残高・ログアウト */
+const VENUE_COLOR_LABELS: Record<VenueColor, string> = {
+  red: '赤',
+  orange: 'オレンジ',
+  yellow: '黄',
+  green: '緑',
+  teal: '青緑',
+  blue: '青',
+  purple: '紫',
+  pink: 'ピンク',
+};
+
+/** 設定: 記帳開始日・参加費の初期値・経費科目の並び・ジャッジの名前・会場の色・期首残高・ログアウト */
 export function render(root: HTMLElement, app: App): void {
   const settings = app.settings.data;
   const ledger = app.ledger.data;
@@ -132,5 +144,79 @@ export function render(root: HTMLElement, app: App): void {
   account.append(el('h2', 'ログイン', 'card-title'));
   account.append(button('ログアウト', () => app.signOut(), 'tax-secondary'));
 
-  root.append(basic, travel, order, opening, account);
+  root.append(basic, travel, order, judgeNamesCard(app), venueColorsCard(app), opening, account);
+}
+
+/** ジャッジタブのプルダウンの候補 */
+function judgeNamesCard(app: App): HTMLElement {
+  const card = el('section', '', 'card');
+  card.append(el('h2', 'ジャッジの名前', 'card-title'));
+  card.append(el('p', 'ジャッジタブの HJ・FJ の候補になります（この並びで出ます）', 'note'));
+  const names = app.settings.data.judgeNames ?? [];
+  const list = el('ul', '', 'tax-list');
+  names.forEach((name, i) => {
+    const item = el('li', '', 'tax-item');
+    const head = el('div', '', 'tax-item-head');
+    head.append(el('span', name));
+    const actions = el('div', '', 'tax-actions');
+    const move = (to: number) => void app.saveSettings((s) => ({ ...s, judgeNames: moveItem(s.judgeNames ?? [], i, to) }));
+    const up = button('↑', () => move(i - 1), 'tax-secondary');
+    const down = button('↓', () => move(i + 1), 'tax-secondary');
+    const del = button('削除', () => {
+      void app.saveSettings((s) => ({ ...s, judgeNames: (s.judgeNames ?? []).filter((_, j) => j !== i) }));
+    }, 'tax-secondary');
+    up.setAttribute('aria-label', `${name}を上へ`);
+    down.setAttribute('aria-label', `${name}を下へ`);
+    del.setAttribute('aria-label', `${name}を削除`);
+    up.disabled = i === 0;
+    down.disabled = i === names.length - 1;
+    actions.append(up, down, del);
+    head.append(actions);
+    item.append(head);
+    list.append(item);
+  });
+  if (names.length > 0) card.append(list);
+  const form = el('form', '', 'tax-form') as HTMLFormElement;
+  form.noValidate = true;
+  const name = input('text', '', { placeholder: '例: たか' });
+  const fields = { name: field('名前', name) };
+  form.append(fields.name.wrap, el('button', '名前を追加', 'submit-wide'));
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const trimmed = name.value.trim();
+    const error = trimmed === '' ? '名前を入力してください' : names.includes(trimmed) ? 'すでに登録しています' : '';
+    showErrors(fields, error ? { name: error } : {});
+    if (error) return;
+    void app.saveSettings((s) => ({ ...s, judgeNames: addJudgeName(s.judgeNames ?? [], trimmed) }));
+  });
+  card.append(form);
+  return card;
+}
+
+/** ジャッジタブの会場名の札の色 */
+function venueColorsCard(app: App): HTMLElement {
+  const card = el('section', '', 'card');
+  card.append(el('h2', '会場の色', 'card-title'));
+  card.append(el('p', 'ジャッジタブの会場名の色です', 'note'));
+  const list = el('ul', '', 'tax-list');
+  const options = [{ value: '', label: 'なし' }, ...VENUE_COLORS.map((c) => ({ value: c, label: VENUE_COLOR_LABELS[c] }))];
+  for (const venue of venuesOf(app.schedule)) {
+    const item = el('li', '', 'tax-item');
+    const head = el('div', '', 'tax-item-head');
+    const current = app.settings.data.venueColors?.[venue];
+    head.append(el('span', venue, `tax-venue tax-venue-${current ?? 'none'}`));
+    const colorSel = select(options, current ?? '');
+    colorSel.setAttribute('aria-label', `${venue}の色`);
+    colorSel.addEventListener('change', () => {
+      void app.saveSettings((s) => {
+        const { [venue]: _, ...rest } = s.venueColors ?? {};
+        return { ...s, venueColors: colorSel.value ? { ...rest, [venue]: colorSel.value as VenueColor } : rest };
+      });
+    });
+    head.append(colorSel);
+    item.append(head);
+    list.append(item);
+  }
+  card.append(list);
+  return card;
 }
