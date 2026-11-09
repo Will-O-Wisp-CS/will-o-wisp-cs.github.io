@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-31T19:06:36.414Z",
+  "updatedAt": "2026-11-09T23:41:25.784Z",
   "events": [
     {
       "date": "2026-11-03",
@@ -111,15 +111,6 @@
     },
     {
       "date": "2026-12-06",
-      "venue": "竜星の嵐新宿店",
-      "format": "オリジナル",
-      "entryType": "個人",
-      "capacity": 64,
-      "start": "10:30",
-      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=353&Seq=1"
-    },
-    {
-      "date": "2026-12-06",
       "venue": "晴れる屋3",
       "format": "オリジナル",
       "entryType": "個人",
@@ -144,15 +135,6 @@
       "capacity": 128,
       "start": "10:40",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4466&EventID=353&Seq=2"
-    },
-    {
-      "date": "2026-12-13",
-      "venue": "竜星の嵐新宿店",
-      "format": "オリジナル",
-      "entryType": "個人",
-      "capacity": 64,
-      "start": "10:30",
-      "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=353&Seq=2"
     },
     {
       "date": "2026-12-13",
