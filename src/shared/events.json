@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-12T21:43:29.643Z",
+  "updatedAt": "2026-11-14T19:42:27.323Z",
   "events": [
     {
       "date": "2026-11-03",
@@ -119,6 +119,15 @@
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=353&Seq=1"
     },
     {
+      "date": "2026-12-06",
+      "venue": "晴れる屋3",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 104,
+      "start": "17:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=353&Seq=2"
+    },
+    {
       "date": "2026-12-08",
       "venue": "竜星の嵐新宿店",
       "format": "オリジナル",
@@ -164,6 +173,15 @@
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=1"
     },
     {
+      "date": "2026-12-19",
+      "venue": "竜星の嵐新宿店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 80,
+      "start": "10:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=388&EventID=353&Seq=1"
+    },
+    {
       "date": "2026-12-26",
       "venue": "フルコンプ本厚木店",
       "format": "オリジナル",
@@ -198,6 +216,24 @@
       "capacity": 64,
       "start": "12:20",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=353&Seq=2"
+    },
+    {
+      "date": "2027-01-02",
+      "venue": "TSUTAYAレイクタウン",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "14:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=356&Seq=1"
+    },
+    {
+      "date": "2027-01-31",
+      "venue": "TSUTAYAレイクタウン",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "14:20",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=4609&EventID=356&Seq=2"
     }
   ]
 }
