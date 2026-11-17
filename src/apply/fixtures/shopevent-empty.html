@@ -1,0 +1,86 @@
+<!-- 2026-11-17 に取得した https://www.dmp-ranking.com/shopevent.asp?EventID=356（2027年1月、未申請）。お知らせの文面を除いて縮めたもの -->
+<form method="POST" action="/shopevent_bin.asp" name="form1">
+<input type="hidden" name="Mode" value="">
+<input type="hidden" name="ProgShopID" value="388">
+<input type="hidden" name="EventID" value="356">
+<input type="hidden" name="DeleteSeq" value="">
+<input type="hidden" name="EntryLimitSeq" value="">
+<input type="hidden" name="DeckLimitSeq" value="">
+<div class="tx1416">
+ <div>
+ <nobr>
+ <b>公認CSサポート2027年1月開催申請 </b>
+ 　実施可能期間：2027/01/01 ～ 2027/01/31
+ 　実施上限：2回
+ 　<span class="tx1618" style="color:#ff0000;"><b>2026/11/25</b>&nbsp;申請締切</span>
+ </nobr>
+ </div>
+ <div>
+ <table border="0" class="tx1416" style="border-collapse:collapse;">
+ <tbody><tr style="height:22px;background-color:#dddddd;">
+ <td align="center" style="border:solid 1px #000000;"></td>
+ <td align="center" style="border:solid 1px #000000;"> 1回目 </td>
+ <td align="center" style="border:solid 1px #000000;border-right:none;"> 実施日 </td>
+ <td align="center" style="border:solid 1px #000000;border-left:none;"><br></td>
+ <td align="center" style="border:solid 1px #000000;"> 状態 </td>
+ <td align="center" style="border:solid 1px #000000;"> 参加表明 </td>
+ <td align="center" style="border:solid 1px #000000;"></td>
+ </tr>
+ <tr style="height:34px;">
+ <td align="center" style="border:solid 1px #000000;"></td>
+ <td align="center" style="border:solid 1px #000000;">
+ <input type="button" class="tx1416" style="cursor:pointer;" value="1回目開催情報" onclick="EventAdd('');">
+ </td>
+ <td align="center" style="border:solid 1px #000000;border-right:none;padding:3px;">
+ <input type="hidden" name="EventDate1" value="">
+<!--
+ <input type="text" name="EventDate1" value="" class="tb1416ro" style="width:84px;" tabindex="-1" readonly onfocus="this.blur();">
+-->
+ </td>
+ <td align="center" style="border:solid 1px #000000;border-left:none;"></td>
+ <td align="center" style="border:solid 1px #000000;padding:3px;">
+ 開催されません
+ </td>
+ <td align="center" style="border:solid 1px #000000;"></td>
+ <td align="center" style="border:solid 1px #000000;"></td>
+ </tr>
+ <tr style="height:22px;background-color:#dddddd;">
+ <td align="center" style="border:solid 1px #000000;"></td>
+ <td align="center" style="border:solid 1px #000000;"> 2回目 </td>
+ <td align="center" style="border:solid 1px #000000;border-right:none;"> 実施日 </td>
+ <td align="center" style="border:solid 1px #000000;border-left:none;"><br></td>
+ <td align="center" style="border:solid 1px #000000;"> 状態 </td>
+ <td align="center" style="border:solid 1px #000000;"> 参加表明 </td>
+ <td align="center" style="border:solid 1px #000000;"></td>
+ </tr>
+ <tr style="height:34px;">
+ <td align="center" style="border:solid 1px #000000;"></td>
+ <td align="center" style="border:solid 1px #000000;">
+ <input type="button" class="tx1416" style="cursor:pointer;" value="2回目開催情報" onclick="EventAdd('');">
+ </td>
+ <td align="center" style="border:solid 1px #000000;border-right:none;padding:3px;">
+ <input type="hidden" name="EventDate2" value="">
+<!--
+ <input type="text" name="EventDate2" value="" class="tb1416ro" style="width:84px;" tabindex="-1" readonly onfocus="this.blur();">
+-->
+ </td>
+ <td align="center" style="border:solid 1px #000000;border-left:none;"></td>
+ <td align="center" style="border:solid 1px #000000;padding:3px;">
+ 開催されません
+ </td>
+ <td align="center" style="border:solid 1px #000000;"></td>
+ <td align="center" style="border:solid 1px #000000;"></td>
+ </tr>
+ </tbody></table>
+ </div>
+ <div>
+ <nobr>
+ <span class="tx1416" style="color:#FF0000;">※上の「○回目開催情報」ボタンを押して大会の詳細を登録した上で申請してください。</span>
+ <span class="tx1416" style="color:#FF0000;">※1回目開催情報を登録すれば、その登録内容を2回目以降にコピーすることが可能です。</span>
+ </nobr>
+ </div>
+ <div>
+ <input type="button" class="tx1416" style="cursor:pointer;" value="上記内容で申請する" onclick="SubmitCheck();">
+ </div>
+</div>
+</form>

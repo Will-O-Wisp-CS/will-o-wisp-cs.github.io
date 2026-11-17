@@ -6,7 +6,7 @@ import { slotLabel, type Account, type SlotRequest } from './input.ts';
 import { APPLIED_STATUSES, type MonthPage, type MonthRow } from './menu.ts';
 
 export type AccountPlan = {
-  apply: { request: SlotRequest; seq: number }[];
+  apply: { request: SlotRequest }[];
   skipped: { request: SlotRequest; reason: string }[];
 };
 
@@ -29,11 +29,11 @@ export function planAccount(requests: SlotRequest[], row: MonthRow | null, page:
     if (registeredDates.has(request.date)) skipped.push({ request, reason: '同じ日付の開催が登録済み' });
     else rest.push(request);
   }
-  if (rest.length > page.freeSeqs.length) {
-    const reason = `空き枠が足りません（空き ${page.freeSeqs.length}）`;
+  if (rest.length > page.free) {
+    const reason = `空き枠が足りません（空き ${page.free}）`;
     return { apply: [], skipped: [...skipped, ...rest.map((request) => ({ request, reason }))] };
   }
-  return { apply: rest.map((request, i) => ({ request, seq: page.freeSeqs[i] })), skipped };
+  return { apply: rest.map((request) => ({ request })), skipped };
 }
 
 /**
