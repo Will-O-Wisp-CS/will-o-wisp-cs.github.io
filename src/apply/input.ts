@@ -77,7 +77,9 @@ export function parseApplyInput(
   const requests: SlotRequest[] = [];
   for (const slot of SLOT_KEYS) {
     const label = slotLabel(slot);
-    const venue = normalize(raw[`${slot}_venue`] ?? '');
+    // 会場の選択肢の「なし」は空欄と同じ（Run workflow の choice は空の選択肢を置けないため）
+    const venueText = normalize(raw[`${slot}_venue`] ?? '');
+    const venue = venueText === 'なし' ? '' : venueText;
     const dateText = (raw[`${slot}_date`] ?? '').trim();
     if (!venue && !dateText) continue;
     if (!venue || !dateText) {

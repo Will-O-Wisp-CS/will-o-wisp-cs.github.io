@@ -54,6 +54,11 @@ describe('parseApplyInput', () => {
     expect(r).toEqual({ ok: true, value: { year: 2027, month: 1, dryRun: true, requests: [] } });
   });
 
+  it('会場「なし」は空欄と同じ', () => {
+    const r = parseApplyInput({ month: '2027-01', a1_venue: 'なし', a1_date: '' }, venues);
+    expect(r.ok && r.value.requests).toEqual([]);
+  });
+
   it('dry_run が無い・"true" なら確認だけ', () => {
     const none = parseApplyInput({ month: '2027-01' }, venues);
     const yes = parseApplyInput({ month: '2027-01', dry_run: 'true' }, venues);

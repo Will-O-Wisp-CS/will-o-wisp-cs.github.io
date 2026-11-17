@@ -1,0 +1,114 @@
+name: 大会を申請
+
+# dmp-ranking.com の店舗管理画面で「公認CSサポート○月開催申請」を出す（設計書: docs/superpowers/specs/2026-11-17-dmp-apply-design.md）
+# 会場と日付を入れた枠だけを申請する。全部「なし」で実行すると6枠の状態だけを出す
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: '申請する開催月（2027-01 / 2027年1月）'
+        required: true
+        type: string
+      a1_venue:
+        description: 'A① 会場'
+        type: choice
+        default: 'なし'
+        options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
+      a1_date:
+        description: 'A① 日付（10 / 1/10 / 2027-01-10）'
+        type: string
+      a2_venue:
+        description: 'A② 会場'
+        type: choice
+        default: 'なし'
+        options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
+      a2_date:
+        description: 'A② 日付'
+        type: string
+      b1_venue:
+        description: 'B① 会場'
+        type: choice
+        default: 'なし'
+        options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
+      b1_date:
+        description: 'B① 日付'
+        type: string
+      b2_venue:
+        description: 'B② 会場'
+        type: choice
+        default: 'なし'
+        options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
+      b2_date:
+        description: 'B② 日付'
+        type: string
+      c1_venue:
+        description: 'C① 会場'
+        type: choice
+        default: 'なし'
+        options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
+      c1_date:
+        description: 'C① 日付'
+        type: string
+      c2_venue:
+        description: 'C② 会場'
+        type: choice
+        default: 'なし'
+        options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
+      c2_date:
+        description: 'C② 日付'
+        type: string
+      dry_run:
+        description: '確認だけ（保存・申請しない）。外すと本当に申請する'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Apply
+        run: npm run apply
+        env:
+          INPUT_MONTH: ${{ inputs.month }}
+          INPUT_A1_VENUE: ${{ inputs.a1_venue }}
+          INPUT_A1_DATE: ${{ inputs.a1_date }}
+          INPUT_A2_VENUE: ${{ inputs.a2_venue }}
+          INPUT_A2_DATE: ${{ inputs.a2_date }}
+          INPUT_B1_VENUE: ${{ inputs.b1_venue }}
+          INPUT_B1_DATE: ${{ inputs.b1_date }}
+          INPUT_B2_VENUE: ${{ inputs.b2_venue }}
+          INPUT_B2_DATE: ${{ inputs.b2_date }}
+          INPUT_C1_VENUE: ${{ inputs.c1_venue }}
+          INPUT_C1_DATE: ${{ inputs.c1_date }}
+          INPUT_C2_VENUE: ${{ inputs.c2_venue }}
+          INPUT_C2_DATE: ${{ inputs.c2_date }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          DMP_A_ID: ${{ secrets.DMP_A_ID }}
+          DMP_A_PASSWORD: ${{ secrets.DMP_A_PASSWORD }}
+          DMP_B_ID: ${{ secrets.DMP_B_ID }}
+          DMP_B_PASSWORD: ${{ secrets.DMP_B_PASSWORD }}
+          DMP_C_ID: ${{ secrets.DMP_C_ID }}
+          DMP_C_PASSWORD: ${{ secrets.DMP_C_PASSWORD }}
+          DMP_CONTACT_MAIL: ${{ secrets.DMP_CONTACT_MAIL }}
+      # 入力後・申請後の画面（メールアドレス欄は隠してある）。公開リポジトリなので1日で消す
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: src/apply/out/
+          retention-days: 1
+          if-no-files-found: ignore

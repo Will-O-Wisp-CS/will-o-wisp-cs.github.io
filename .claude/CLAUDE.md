@@ -20,6 +20,7 @@ npm test        # vitest
 npm run build   # tsc + vite build → dist/
 npm run fetch-schedule   # dmp-ranking.com から src/shared/events.json を更新（Node 専用）
 npm run export-csv -- 2026-10 <出力先.csv>   # 指定月の大会を「開催日,開催地,定員,受付」の CSV に（Node 専用）
+npm run apply   # 公認CSサポートの申請（Node 専用。普段は GitHub Actions の「大会を申請」から実行）
 ```
 
 `main` への push で `.github/workflows/deploy.yml` が test → build → Pages デプロイを行う。
@@ -38,6 +39,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
   points/    ポイント計算: index.html / main.ts(DOM) / input.ts / points.ts
   schedule/  大会スケジュール: index.html / main.ts(DOM) / parse.ts / schedule.ts / fetch.ts(Node専用の取得スクリプト) / archive.ts(大会の記録) / csv.ts + export-csv.ts(月別 CSV 出力)
   tax/       帳簿: index.html / main.ts(ログイン・タブ) / view-*.ts(各画面) / ui.ts(画面部品) / app.ts(画面間の型) / ledger.ts(型・勘定科目) / journal.ts(入力→仕訳) / travel.ts(旅費交通費のテンプレ・往復) / busy.ts(保存中の表示) / queue.ts(保存の順番待ち) / reminder.ts(開催の取り込み・リマインド) / report.ts(決算) / judges.ts + view-judges.ts(ジャッジの割り当て) / search.ts / csv.ts / receipt.ts / format.ts / drive.ts(Google 連携) / store.ts(帳簿の読み書き) / config.ts(OAuth クライアント ID)
+  apply/     公認CSサポートの自動申請（画面なし・Node 専用）: apply.ts(Playwright の入口) / input.ts(Run workflow の入力) / fields.ts(会場のひな形→画面の値) / menu.ts(管理画面の読み取り) / plan.ts(枠の割り当て) / summary.ts(状態表) / venues.json(会場のひな形)
   shared/    全ページ共通: dom.ts(el, card) / calendar.ts(祝日) / csv.ts(BOM 付き CSV) / menu.ts(ハンバーガーメニュー) / entryLink.ts / parse.ts(ParseResult) / events.ts(ScheduleEvent, 次の開催日) / events.json(大会スケジュールの取得結果) / events-archive.json(大会の記録。過去の月も含む) / style.css
 ルート直下のファイル   package.json, package-lock.json, tsconfig.json, vite.config.ts, .gitignore のみ
 ```
@@ -96,3 +98,11 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - 保存前にドライブ上の中身の `rev`（保存ごとに +1）を比べ、違えば保存しない（他の端末での更新）。ドライブのファイルの version は勝手に増えるので使わない
 - ジャッジタブは開催ごとの HJ・FJ を `judges.json`（帳簿とは別ファイル。`rev` の比較は同じ、バックアップなし）に保存する。表は今月以降の開催を月ごとに出し、受付開始は開始の20分前。プルダウンの候補は設定の `judgeNames`、会場名の色は設定の `venueColors`（選んでいない会場は `judges.ts` の初期値の色）。手入力した名前は候補に足さない（詳細は docs/superpowers/specs/2026-11-03-judge-assignments-design.md）
 - `backup/` に直前の版を残すのは、ページを開いて最初の保存とその後1時間ごと（年ごとに30件）。保存のたびに取ると遅いため。領収書は同時にアップロードし、フォルダはログイン後に先読みする
+
+### 自動申請（詳細は docs/superpowers/specs/2026-11-17-dmp-apply-design.md）
+- `.github/workflows/apply.yml`（「大会を申請」、手動実行のみ）で、6枠（A①〜C②。3アカウント×月2回）に会場と日付を指定して「公認CSサポートYYYY年M月開催申請」を出す。全部「なし」で実行すると状態の一覧だけ
+- 「確認だけ」（既定）は入力まで。〔更新保存〕だけでは申請にならず、〔上記内容で申請する〕まで押して初めて申請になる
+- ログイン情報・担当者メールアドレスは Secrets（`DMP_A_ID` / `DMP_A_PASSWORD` 〜 C、`DMP_CONTACT_MAIL`）。ログ・状態表・リポジトリに出さない。スクリーンショットはメール欄を隠し、artifact は1日で消す
+- 参加表明・デッキ提出の開始＝開催日14日前 20:00、参加表明締切＝受付開始の10分前、デッキ提出締切＝開催日 23:59。ジャッジは毎回 06012
+- 会場を足すときは `venues.json` と `apply.yml` の6つの会場の選択肢をそろえる（ずれるとテストが落ちる）
+- アカウントの空き枠が足りない・保存のみ（未申請）の開催がある月は、勝手に選ばずそのアカウントの指定をすべて飛ばす
