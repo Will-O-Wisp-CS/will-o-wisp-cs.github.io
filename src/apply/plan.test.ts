@@ -55,9 +55,12 @@ describe('planAccount', () => {
     });
   });
 
-  it('差し戻された開催も枠に数える', () => {
+  it('差し戻された開催がある月は何もしない（申請すると差し戻しの開催まで出し直すため）', () => {
     const back: MonthPage = { registered: [{ seq: 1, date: '2027-01-24', status: '差し戻されました' }], free: 1 };
-    expect(planAccount([a1, a2], openRow, back).apply).toEqual([]);
+    expect(planAccount([a2], openRow, back)).toEqual({
+      apply: [],
+      skipped: [{ request: a2, reason: '差し戻された開催あり。画面で直してください' }],
+    });
   });
 });
 

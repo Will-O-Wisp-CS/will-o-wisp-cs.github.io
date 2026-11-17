@@ -78,7 +78,11 @@ async function html(page: Page, path: string): Promise<string> {
 
 /** ボタンを押して画面が移るのを待つ */
 async function clickAndWait(page: Page, selector: string): Promise<void> {
-  await Promise.all([page.waitForEvent('framenavigated', { timeout: 30_000 }), page.click(selector)]);
+  // 地図などの iframe の遷移で待ちが解けないよう、ページ本体の遷移だけを待つ
+  await Promise.all([
+    page.waitForEvent('framenavigated', { predicate: (f) => f === page.mainFrame(), timeout: 30_000 }),
+    page.click(selector),
+  ]);
   await page.waitForLoadState('load');
 }
 
@@ -126,6 +130,8 @@ async function runAccount(
     return { page: null, results: requests.map((request) => ({ request, state: `失敗: Secrets の DMP_${account}_ID / DMP_${account}_PASSWORD がありません` })) };
   }
   const context = await browser.newContext();
+  // 確認だけのときは、画面の JS が勝手に送信しても保存・申請の通信を止める（ログインの index_bin.asp は通す）
+  if (ctx.dryRun) await context.route(/\/shopevent(sub)?_bin\.asp/,(route) => route.abort());
   const page = await context.newPage();
   const dialogs = new Dialogs(page);
   let monthPage: MonthPage | null = null;
@@ -149,6 +155,7 @@ async function runAccount(
       }
       try {
         // 空き枠の「○回目開催情報」は Seq が空。保存するとサーバーが Seq を振る
+        const before = parseMonthPage(await html(page, `shopevent.asp?EventID=${row.eventId}`)).registered.length;
         await html(page, `shopeventsub.asp?EventID=${row.eventId}&Seq=`);
         await fillDetail(page, buildFields(ctx.venues, request.venue, request.date, ctx.mail));
         await screenshot(page, `${request.slot}-filled`);
@@ -158,7 +165,8 @@ async function runAccount(
         }
         await dialogs.expectConfirm(() => clickAndWait(page, 'input[value="更新保存"]'));
         const after = parseMonthPage(await html(page, `shopevent.asp?EventID=${row.eventId}`));
-        if (!after.registered.some((r) => r.date === request.date)) {
+        // 日付があるだけでなく、登録済みの数が1つ増えたことも確かめる
+        if (after.registered.length !== before + 1 || !after.registered.some((r) => r.date === request.date)) {
           throw new Error(`保存後の申請画面に ${request.date} がありません${dialogs.alerts.length ? `（${dialogs.alerts.join(' / ')}）` : ''}`);
         }
         saved.push(request);

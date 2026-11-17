@@ -19,6 +19,10 @@ const skipAll = (requests: SlotRequest[], reason: string): AccountPlan => ({
 
 export function planAccount(requests: SlotRequest[], row: MonthRow | null, page: MonthPage | null): AccountPlan {
   if (!row || !row.open || !page) return skipAll(requests, '申請受付期間外');
+  // 〔上記内容で申請する〕は月の開催をまとめて出し直すので、差し戻しの開催がある月には足さない
+  if (page.registered.some((r) => r.status === '差し戻されました')) {
+    return skipAll(requests, '差し戻された開催あり。画面で直してください');
+  }
   if (page.registered.some((r) => !APPLIED_STATUSES.includes(r.status))) {
     return skipAll(requests, '保存のみ（未申請）の開催あり。画面で確かめてください');
   }

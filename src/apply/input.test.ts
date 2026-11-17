@@ -94,6 +94,23 @@ describe('parseApplyInput', () => {
     expect(r.ok).toBe(false);
   });
 
+  it('同じアカウントで同じ日付は会場が違ってもエラー', () => {
+    const r = parseApplyInput(
+      { month: '2027-01', a1_venue: '晴れる屋3', a1_date: '10', a2_venue: '竜星の嵐新宿店', a2_date: '10' },
+      venues,
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.messages.join('\n')).toContain('A②');
+  });
+
+  it('別のアカウントなら同じ日付・別の会場でよい', () => {
+    const r = parseApplyInput(
+      { month: '2027-01', a1_venue: '晴れる屋3', a1_date: '10', b1_venue: '竜星の嵐新宿店', b1_date: '10' },
+      venues,
+    );
+    expect(r.ok).toBe(true);
+  });
+
   it('月が不正ならエラー', () => {
     expect(parseApplyInput({ month: '2027-13' }, venues).ok).toBe(false);
     expect(parseApplyInput({}, venues).ok).toBe(false);

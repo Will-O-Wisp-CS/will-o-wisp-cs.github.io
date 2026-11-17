@@ -101,6 +101,12 @@ export function parseApplyInput(
       messages.push(`${label}: ${slotLabel(same.slot)} と同じ日付・会場です`);
       continue;
     }
+    // 同じアカウントの2枠が同じ日付だと、保存できたかを日付で確かめられないため止める
+    const sameDay = requests.find((r) => r.account === slotAccount(slot) && r.date === day.date);
+    if (sameDay) {
+      messages.push(`${label}: 同じアカウントの ${slotLabel(sameDay.slot)} と同じ日付です`);
+      continue;
+    }
     requests.push({ slot, account: slotAccount(slot), venue: name, date: day.date });
   }
   if (messages.length > 0) return { ok: false, messages };
