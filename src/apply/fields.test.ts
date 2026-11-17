@@ -125,6 +125,11 @@ describe('shiftVenue', () => {
     expect(shiftVenue(hareruya, '20:00').ok).toBe(false);
   });
 
+  it('文面に元の受付時刻が H:MM で書かれていない会場はエラー（ずらせない）', () => {
+    const odd: Venue = { ...ryusei, schedule: '１０：１０～１０：３０：大会受付' };
+    expect(shiftVenue(odd, '10:40').ok).toBe(false);
+  });
+
   it('参加表明締切が前の日になるとエラー', () => {
     expect(shiftVenue(ryusei, '00:05').ok).toBe(false);
   });

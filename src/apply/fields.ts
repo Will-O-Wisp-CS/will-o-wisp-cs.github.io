@@ -66,6 +66,11 @@ const TIME_IN_TEXT = /(\d{1,2}):(\d{2})/g;
 export function shiftVenue(venue: Venue, reception: string): { ok: true; venue: Venue } | { ok: false; message: string } {
   const diff = toMinutes(reception) - toMinutes(venue.reception);
   if (diff === 0) return { ok: true, venue };
+  // 文面の時刻を読めないと、受付だけ変わって文面が元の時刻のまま申請されてしまう
+  const written = [...venue.schedule.matchAll(TIME_IN_TEXT)].some(([, h, m]) => Number(h) * 60 + Number(m) === toMinutes(venue.reception));
+  if (!written) {
+    return { ok: false, message: `「${venue.name}」のタイムスケジュールに受付 ${venue.reception} が H:MM の形で書かれていないため、受付開始を変えられません` };
+  }
   const crosses = `受付開始 ${reception} では時刻が日をまたぐため申請できません`;
   if (toMinutes(reception) - ENTRY_LIMIT_BEFORE_RECEPTION < 0) return { ok: false, message: crosses };
   let outOfDay = false;
