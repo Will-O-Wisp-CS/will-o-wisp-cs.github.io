@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseApplyInput, parseDay } from './input';
+import { parseApplyInput, parseDay, parseTime } from './input';
 
 describe('parseDay', () => {
   it('日だけ・月/日・年-月-日を受け付ける', () => {
@@ -27,6 +27,22 @@ describe('parseDay', () => {
   });
 });
 
+describe('parseTime', () => {
+  it('10:40 / 全角 / 1040 / 10時40分 を受け付ける', () => {
+    for (const t of ['10:40', '１０：４０', '1040', '10時40分']) expect(parseTime(t), t).toEqual({ ok: true, time: '10:40' });
+  });
+
+  it('1桁の時・時だけも受け付ける', () => {
+    expect(parseTime('905')).toEqual({ ok: true, time: '09:05' });
+    expect(parseTime('9:05')).toEqual({ ok: true, time: '09:05' });
+    expect(parseTime('10時')).toEqual({ ok: true, time: '10:00' });
+  });
+
+  it('存在しない時刻・時刻でない文字はエラー', () => {
+    for (const t of ['24:00', '10:60', 'abc', '']) expect(parseTime(t).ok, t).toBe(false);
+  });
+});
+
 describe('parseApplyInput', () => {
   const venues = ['竜星の嵐新宿店', '晴れる屋3'];
 
@@ -42,8 +58,8 @@ describe('parseApplyInput', () => {
         month: 1,
         dryRun: false,
         requests: [
-          { slot: 'a1', account: 'A', venue: '竜星の嵐新宿店', date: '2027-01-10' },
-          { slot: 'b2', account: 'B', venue: '晴れる屋3', date: '2027-01-17' },
+          { slot: 'a1', account: 'A', venue: '竜星の嵐新宿店', date: '2027-01-10', reception: null },
+          { slot: 'b2', account: 'B', venue: '晴れる屋3', date: '2027-01-17', reception: null },
         ],
       },
     });
@@ -123,5 +139,27 @@ describe('parseApplyInput', () => {
     );
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.messages).toHaveLength(3);
+  });
+
+  it('受付開始を入れた枠は reception に HH:MM が入る', () => {
+    const r = parseApplyInput({ month: '2027-01', a1_venue: '竜星の嵐新宿店', a1_date: '10', a1_reception: '１０４０' }, venues);
+    expect(r.ok && r.value.requests[0].reception).toBe('10:40');
+  });
+
+  it('受付開始が空欄なら reception は null', () => {
+    const r = parseApplyInput({ month: '2027-01', a1_venue: '竜星の嵐新宿店', a1_date: '10', a1_reception: ' ' }, venues);
+    expect(r.ok && r.value.requests[0].reception).toBeNull();
+  });
+
+  it('会場・日付なしで受付開始だけはエラー', () => {
+    const r = parseApplyInput({ month: '2027-01', a1_reception: '10:40' }, venues);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.messages.join('\n')).toContain('A①');
+  });
+
+  it('受付開始の書き方が違うとエラー', () => {
+    const r = parseApplyInput({ month: '2027-01', b1_venue: '晴れる屋3', b1_date: '10', b1_reception: '25:00' }, venues);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.messages.join('\n')).toContain('B①');
   });
 });

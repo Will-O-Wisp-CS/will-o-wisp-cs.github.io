@@ -1,7 +1,7 @@
 name: 大会を申請
 
 # dmp-ranking.com の店舗管理画面で「公認CSサポート○月開催申請」を出す（設計書: docs/superpowers/specs/2026-11-17-dmp-apply-design.md）
-# 会場と日付を入れた枠だけを申請する。全部「なし」で実行すると6枠の状態だけを出す
+# 会場と日付を入れた枠だけを申請する。受付開始を入れた枠は開始・締切・タイムスケジュールもずらす。全部「なし」で実行すると6枠の状態だけを出す
 on:
   workflow_dispatch:
     inputs:
@@ -17,6 +17,9 @@ on:
       a1_date:
         description: 'A① 日付（10 / 1/10 / 2027-01-10）'
         type: string
+      a1_reception:
+        description: 'A① 受付開始（空欄＝会場の時刻。10:40）'
+        type: string
       a2_venue:
         description: 'A② 会場'
         type: choice
@@ -24,6 +27,9 @@ on:
         options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
       a2_date:
         description: 'A② 日付'
+        type: string
+      a2_reception:
+        description: 'A② 受付開始（空欄＝会場の時刻。10:40）'
         type: string
       b1_venue:
         description: 'B① 会場'
@@ -33,6 +39,9 @@ on:
       b1_date:
         description: 'B① 日付'
         type: string
+      b1_reception:
+        description: 'B① 受付開始（空欄＝会場の時刻。10:40）'
+        type: string
       b2_venue:
         description: 'B② 会場'
         type: choice
@@ -40,6 +49,9 @@ on:
         options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
       b2_date:
         description: 'B② 日付'
+        type: string
+      b2_reception:
+        description: 'B② 受付開始（空欄＝会場の時刻。10:40）'
         type: string
       c1_venue:
         description: 'C① 会場'
@@ -49,6 +61,9 @@ on:
       c1_date:
         description: 'C① 日付'
         type: string
+      c1_reception:
+        description: 'C① 受付開始（空欄＝会場の時刻。10:40）'
+        type: string
       c2_venue:
         description: 'C② 会場'
         type: choice
@@ -56,6 +71,9 @@ on:
         options: ['なし', '竜星の嵐新宿店', '晴れる屋3']
       c2_date:
         description: 'C② 日付'
+        type: string
+      c2_reception:
+        description: 'C② 受付開始（空欄＝会場の時刻。10:40）'
         type: string
       dry_run:
         description: '確認だけ（保存・申請しない）。外すと本当に申請する'
@@ -86,16 +104,22 @@ jobs:
           INPUT_MONTH: ${{ inputs.month }}
           INPUT_A1_VENUE: ${{ inputs.a1_venue }}
           INPUT_A1_DATE: ${{ inputs.a1_date }}
+          INPUT_A1_RECEPTION: ${{ inputs.a1_reception }}
           INPUT_A2_VENUE: ${{ inputs.a2_venue }}
           INPUT_A2_DATE: ${{ inputs.a2_date }}
+          INPUT_A2_RECEPTION: ${{ inputs.a2_reception }}
           INPUT_B1_VENUE: ${{ inputs.b1_venue }}
           INPUT_B1_DATE: ${{ inputs.b1_date }}
+          INPUT_B1_RECEPTION: ${{ inputs.b1_reception }}
           INPUT_B2_VENUE: ${{ inputs.b2_venue }}
           INPUT_B2_DATE: ${{ inputs.b2_date }}
+          INPUT_B2_RECEPTION: ${{ inputs.b2_reception }}
           INPUT_C1_VENUE: ${{ inputs.c1_venue }}
           INPUT_C1_DATE: ${{ inputs.c1_date }}
+          INPUT_C1_RECEPTION: ${{ inputs.c1_reception }}
           INPUT_C2_VENUE: ${{ inputs.c2_venue }}
           INPUT_C2_DATE: ${{ inputs.c2_date }}
+          INPUT_C2_RECEPTION: ${{ inputs.c2_reception }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
           DMP_A_ID: ${{ secrets.DMP_A_ID }}
           DMP_A_PASSWORD: ${{ secrets.DMP_A_PASSWORD }}

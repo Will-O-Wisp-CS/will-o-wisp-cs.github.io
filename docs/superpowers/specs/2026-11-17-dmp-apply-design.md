@@ -32,13 +32,14 @@
 - 申請画面は textarea の中身を JavaScript で hidden 項目に写してから送るなど、画面側の処理に頼っている。そのため HTTP を自前で組み立てず、Playwright でブラウザを操作する（主催者の判断ではなく設計上の判断）
 
 ## 使い方
-`.github/workflows/apply.yml`（名前「大会を申請」、`workflow_dispatch` のみ）。入力は次の14個。
+`.github/workflows/apply.yml`（名前「大会を申請」、`workflow_dispatch` のみ）。入力は次の20個。
 
 | 入力 | 種類 | 内容 |
 |---|---|---|
 | `month` | string（必須） | 申請する開催月 `2027-01`。全角・`2027/1` も受け付ける |
 | `a1_venue` 〜 `c2_venue` | choice | 空欄＋ひな形のある会場名 |
 | `a1_date` 〜 `c2_date` | string | 開催日。`10` / `1/10` / `2027-01-10` のどれでもよい |
+| `a1_reception` 〜 `c2_reception` | string | 受付開始。空欄なら会場のひな形の時刻。`10:40` / `1040` / `10時40分`。入れると開始・参加表明締切・タイムスケジュールの文面の時刻も同じ分だけずらす（2026-11-17-apply-reception-time-design.md） |
 | `dry_run` | boolean（既定 true） | 確認だけ。外すと本当に申請する |
 
 - 会場と日付の片方だけ埋まっている枠はエラーにして、どの枠も申請しない（入力ミスとみなす）
@@ -71,7 +72,7 @@
 |---|---|---|
 | 大会名 | `EventName` | `鬼火CS in {会場名}` |
 | 実施日 | `EventDate` | 指定日 `YYYY/MM/DD` |
-| 受付開始 | `ReceptionHour` / `ReceptionMinute` | ひな形 |
+| 受付開始 | `ReceptionHour` / `ReceptionMinute` | ひな形（受付開始の指定があればその時刻） |
 | 大会開始 | `EventStartHour` / `EventStartMinute` | ひな形 |
 | 参加形式 | `EventTeam` | 共通 `1`（個人戦） |
 | フォーマット | `EventDendo` | 共通 `6`（オリジナル） |

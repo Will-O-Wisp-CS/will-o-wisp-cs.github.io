@@ -3,8 +3,8 @@ import type { SlotRequest } from './input';
 import type { MonthPage, MonthRow } from './menu';
 import { accountSlots, planAccount } from './plan';
 
-const a1: SlotRequest = { slot: 'a1', account: 'A', venue: '竜星の嵐新宿店', date: '2027-01-10' };
-const a2: SlotRequest = { slot: 'a2', account: 'A', venue: '晴れる屋3', date: '2027-01-17' };
+const a1: SlotRequest = { slot: 'a1', account: 'A', venue: '竜星の嵐新宿店', date: '2027-01-10', reception: null };
+const a2: SlotRequest = { slot: 'a2', account: 'A', venue: '晴れる屋3', date: '2027-01-17', reception: null };
 const openRow: MonthRow = { eventId: 356, status: null, open: true };
 const empty: MonthPage = { registered: [], free: 2 };
 const oneApproved: MonthPage = { registered: [{ seq: 1, date: '2027-01-10', status: '承認されました' }], free: 1 };

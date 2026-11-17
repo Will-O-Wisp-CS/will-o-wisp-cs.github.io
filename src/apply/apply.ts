@@ -7,7 +7,7 @@
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { chromium, type Browser, type Dialog, type Page } from 'playwright';
-import { buildFields, type FormValues, type VenueFile } from './fields.ts';
+import { buildFields, shiftVenue, type FormValues, type VenueFile } from './fields.ts';
 import { parseApplyInput, slotLabel, type Account, type SlotRequest } from './input.ts';
 import { findMonthRow, isLoginPage, parseMonthPage, type MonthPage } from './menu.ts';
 import { accountSlots, planAccount, type SlotResult } from './plan.ts';
@@ -157,7 +157,7 @@ async function runAccount(
         // 空き枠の「○回目開催情報」は Seq が空。保存するとサーバーが Seq を振る
         const before = parseMonthPage(await html(page, `shopevent.asp?EventID=${row.eventId}`)).registered.length;
         await html(page, `shopeventsub.asp?EventID=${row.eventId}&Seq=`);
-        await fillDetail(page, buildFields(ctx.venues, request.venue, request.date, ctx.mail));
+        await fillDetail(page, buildFields(ctx.venues, request.venue, request.date, ctx.mail, request.reception));
         await screenshot(page, `${request.slot}-filled`);
         if (ctx.dryRun) {
           results.push({ request, state: STATE_DRY });
@@ -210,6 +210,17 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   const { year, month, dryRun, requests } = input.value;
+  // 受付開始をずらすと日をまたぐ枠は、ログインする前に止める（どの枠も申請しない）
+  const shiftErrors = requests.flatMap((r) => {
+    if (!r.reception) return [];
+    const venue = venues.venues.find((v) => v.name === r.venue);
+    const moved = venue ? shiftVenue(venue, r.reception) : { ok: true as const };
+    return moved.ok ? [] : [`${slotLabel(r.slot)}: ${moved.message}`];
+  });
+  if (shiftErrors.length > 0) {
+    for (const m of shiftErrors) console.error(m);
+    process.exit(1);
+  }
   const mail = process.env.DMP_CONTACT_MAIL ?? '';
   if (requests.length > 0 && !mail) {
     console.error('Secrets の DMP_CONTACT_MAIL がありません');
