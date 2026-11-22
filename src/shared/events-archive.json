@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-20T22:07:19.274Z",
+  "updatedAt": "2026-11-22T20:55:42.108Z",
   "months": [
     "2026-01",
     "2026-02",
@@ -1056,6 +1056,15 @@
       "capacity": 80,
       "start": "10:30",
       "url": "https://www.dmp-ranking.com/event.asp?ShopID=342&EventID=356&Seq=2"
+    },
+    {
+      "date": "2027-01-30",
+      "venue": "フルコンプ本厚木店",
+      "format": "オリジナル",
+      "entryType": "個人",
+      "capacity": 64,
+      "start": "11:30",
+      "url": "https://www.dmp-ranking.com/event.asp?ShopID=181&EventID=356&Seq=1"
     },
     {
       "date": "2027-01-31",
