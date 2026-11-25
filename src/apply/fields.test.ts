@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFields, type VenueFile } from './fields';
+import { buildFields, shiftVenue, type Venue, type VenueFile } from './fields';
 import venues from './venues.json';
 
 const file = venues as VenueFile;
@@ -84,5 +84,72 @@ describe('buildFields', () => {
 
   it('知らない会場は例外', () => {
     expect(() => buildFields(file, 'どこか', '2027-01-10', 'x@example.com')).toThrow('どこか');
+  });
+});
+
+const ryusei = file.venues.find((v) => v.name === '竜星の嵐新宿店') as Venue;
+const hareruya = file.venues.find((v) => v.name === '晴れる屋3') as Venue;
+
+function shifted(venue: Venue, reception: string): Venue {
+  const r = shiftVenue(venue, reception);
+  if (!r.ok) throw new Error(r.message);
+  return r.venue;
+}
+
+describe('shiftVenue', () => {
+  it('受付を遅らせると開始とタイムスケジュールの時刻も同じだけずれる', () => {
+    const v = shifted(ryusei, '10:40');
+    expect(v.reception).toBe('10:40');
+    expect(v.start).toBe('11:00');
+    expect(v.schedule).toBe(
+      '10:40～11:00：大会受付（事前受付・当日枠共に）\n11:10～11:20：開会式\n11:20～13:30：予選スイスドロー5回戦\n13:40～15:10：決勝トーナメント',
+    );
+  });
+
+  it('受付を早めると時が1桁になり、1桁のまま書く', () => {
+    const v = shifted(ryusei, '09:40');
+    expect(v.start).toBe('10:00');
+    expect(v.schedule.split('\n')[0]).toBe('9:40～10:00：大会受付（事前受付・当日枠共に）');
+  });
+
+  it('全角スペース区切りの文面もずれる', () => {
+    const v = shifted(hareruya, '17:30');
+    expect(v.schedule.split('\n')[3]).toBe('20:50～22:20　決勝トーナメント');
+  });
+
+  it('会場と同じ受付ならひな形のまま', () => {
+    expect(shifted(ryusei, '10:10')).toEqual(ryusei);
+  });
+
+  it('文面の時刻が24時をこえるとエラー', () => {
+    expect(shiftVenue(hareruya, '20:00').ok).toBe(false);
+  });
+
+  it('文面に元の受付時刻が H:MM で書かれていない会場はエラー（ずらせない）', () => {
+    const odd: Venue = { ...ryusei, schedule: '１０：１０～１０：３０：大会受付' };
+    expect(shiftVenue(odd, '10:40').ok).toBe(false);
+  });
+
+  it('参加表明締切が前の日になるとエラー', () => {
+    expect(shiftVenue(ryusei, '00:05').ok).toBe(false);
+  });
+});
+
+describe('buildFields の受付開始の指定', () => {
+  it('受付・開始・締切・タイムスケジュールがずれる', () => {
+    const f = buildFields(file, '竜星の嵐新宿店', '2026-12-19', 'x@example.com', '10:40');
+    expect(f.selects).toMatchObject({
+      ReceptionHour: '10',
+      ReceptionMinute: '40',
+      EventStartHour: '11',
+      EventStartMinute: '00',
+      EntryLimitHour: '10',
+      EntryLimitMinute: '30',
+    });
+    expect(f.texts.ScheduleInput).toBe(shifted(ryusei, '10:40').schedule);
+  });
+
+  it('日をまたぐ受付は例外', () => {
+    expect(() => buildFields(file, '晴れる屋3', '2026-12-06', 'x@example.com', '20:00')).toThrow('20:00');
   });
 });

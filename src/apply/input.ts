@@ -1,5 +1,5 @@
 /**
- * Run workflow の入力（申請する月・6枠の会場と日付・確認だけ）を解釈する。
+ * Run workflow の入力（申請する月・6枠の会場と日付と受付開始・確認だけ）を解釈する。
  * 誤りは全部集めて返し、1つでもあればどの枠も申請しない。
  */
 
@@ -7,7 +7,8 @@ export type Account = 'A' | 'B' | 'C';
 export type SlotKey = 'a1' | 'a2' | 'b1' | 'b2' | 'c1' | 'c2';
 export const SLOT_KEYS: SlotKey[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
 
-export type SlotRequest = { slot: SlotKey; account: Account; venue: string; date: string };
+/** reception は受付開始 'HH:MM'。null なら会場のひな形の時刻 */
+export type SlotRequest = { slot: SlotKey; account: Account; venue: string; date: string; reception: string | null };
 export type ApplyInput = { year: number; month: number; dryRun: boolean; requests: SlotRequest[] };
 
 /** 'a1' → 'A①' */
@@ -57,6 +58,18 @@ export function parseDay(
   return { ok: true, date: `${year}-${pad(month)}-${pad(d)}` };
 }
 
+/** '10:40' / '1040' / '10時40分' / '10時'（全角可）→ 'HH:MM' */
+export function parseTime(text: string): { ok: true; time: string } | { ok: false; message: string } {
+  const t = normalize(text).replace(/\s+/g, '');
+  const match = t.match(/^(\d{1,2}):(\d{2})$/) ?? t.match(/^(\d{1,2})(\d{2})$/) ?? t.match(/^(\d{1,2})時(?:(\d{1,2})分)?$/);
+  const hour = Number(match?.[1]);
+  const minute = Number(match?.[2] ?? 0);
+  if (!match || hour > 23 || minute > 59) {
+    return { ok: false, message: `受付開始は 10:40 / 1040 / 10時40分 の形で入れてください: ${text}` };
+  }
+  return { ok: true, time: `${pad(hour)}:${pad(minute)}` };
+}
+
 function parseMonth(text: string): { year: number; month: number } | null {
   const m = normalize(text).match(/^(\d{4})\s*(?:[-/]|年)\s*(\d{1,2})\s*月?$/);
   if (!m) return null;
@@ -81,7 +94,12 @@ export function parseApplyInput(
     const venueText = normalize(raw[`${slot}_venue`] ?? '');
     const venue = venueText === 'なし' ? '' : venueText;
     const dateText = (raw[`${slot}_date`] ?? '').trim();
-    if (!venue && !dateText) continue;
+    const receptionText = (raw[`${slot}_reception`] ?? '').trim();
+    if (!venue && !dateText && !receptionText) continue;
+    if (!venue && !dateText) {
+      messages.push(`${label}: 受付開始だけでなく会場と日付も入れてください`);
+      continue;
+    }
     if (!venue || !dateText) {
       messages.push(`${label}: 会場と日付の両方を入れてください`);
       continue;
@@ -96,6 +114,15 @@ export function parseApplyInput(
       messages.push(`${label}: ${day.message}`);
       continue;
     }
+    let reception: string | null = null;
+    if (receptionText) {
+      const time = parseTime(receptionText);
+      if (!time.ok) {
+        messages.push(`${label}: ${time.message}`);
+        continue;
+      }
+      reception = time.time;
+    }
     const same = requests.find((r) => r.venue === name && r.date === day.date);
     if (same) {
       messages.push(`${label}: ${slotLabel(same.slot)} と同じ日付・会場です`);
@@ -107,7 +134,7 @@ export function parseApplyInput(
       messages.push(`${label}: 同じアカウントの ${slotLabel(sameDay.slot)} と同じ日付です`);
       continue;
     }
-    requests.push({ slot, account: slotAccount(slot), venue: name, date: day.date });
+    requests.push({ slot, account: slotAccount(slot), venue: name, date: day.date, reception });
   }
   if (messages.length > 0) return { ok: false, messages };
   return { ok: true, value: { ...ym, dryRun: raw.dry_run?.trim() !== 'false', requests } };

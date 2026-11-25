@@ -25,11 +25,14 @@ describe('apply.yml', () => {
     for (const slot of SLOT_KEYS) expect(found.get(`${slot}_venue`), slot).toEqual(expected);
   });
 
-  it('入力は月・6枠の会場と日付・確認だけの14個（上限25個以内）', () => {
+  it('入力は月・6枠の会場と日付と受付開始・確認だけの20個（上限25個以内）', () => {
     const names = [...inputs().keys()];
-    expect(names).toHaveLength(14);
+    expect(names).toHaveLength(20);
     expect(names).toContain('month');
     expect(names).toContain('dry_run');
-    for (const slot of SLOT_KEYS) expect(names).toContain(`${slot}_date`);
+    for (const slot of SLOT_KEYS) {
+      expect(names).toContain(`${slot}_date`);
+      expect(names).toContain(`${slot}_reception`);
+    }
   });
 });

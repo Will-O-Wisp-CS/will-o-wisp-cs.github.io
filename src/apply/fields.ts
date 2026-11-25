@@ -55,9 +55,53 @@ function toMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
-export function buildFields(file: VenueFile, venueName: string, date: string, mail: string): FormValues {
-  const venue = file.venues.find((v) => v.name === venueName);
-  if (!venue) throw new Error(`会場「${venueName}」のひな形がありません`);
+const DAY = 24 * 60;
+const TIME_IN_TEXT = /(\d{1,2}):(\d{2})/g;
+
+/**
+ * 受付開始を reception（'HH:MM'）にしたときの会場。元の受付との差の分だけ、
+ * 開始時刻とタイムスケジュールの文面の時刻（H:MM / HH:MM）をすべてずらす。時は 0 を付けずに書く（9:40）。
+ * 参加表明締切（受付の10分前）や文面の時刻が日をまたぐならエラー。
+ */
+export function shiftVenue(venue: Venue, reception: string): { ok: true; venue: Venue } | { ok: false; message: string } {
+  const diff = toMinutes(reception) - toMinutes(venue.reception);
+  if (diff === 0) return { ok: true, venue };
+  // 文面の時刻を読めないと、受付だけ変わって文面が元の時刻のまま申請されてしまう
+  const written = [...venue.schedule.matchAll(TIME_IN_TEXT)].some(([, h, m]) => Number(h) * 60 + Number(m) === toMinutes(venue.reception));
+  if (!written) {
+    return { ok: false, message: `「${venue.name}」のタイムスケジュールに受付 ${venue.reception} が H:MM の形で書かれていないため、受付開始を変えられません` };
+  }
+  const crosses = `受付開始 ${reception} では時刻が日をまたぐため申請できません`;
+  if (toMinutes(reception) - ENTRY_LIMIT_BEFORE_RECEPTION < 0) return { ok: false, message: crosses };
+  let outOfDay = false;
+  const shift = (h: string, m: string): string => {
+    const total = Number(h) * 60 + Number(m) + diff;
+    if (total < 0 || total >= DAY) outOfDay = true;
+    const hour = Math.floor(total / 60);
+    return `${hour}:${pad(total % 60)}`;
+  };
+  const schedule = venue.schedule.replace(TIME_IN_TEXT, (_, h: string, m: string) => shift(h, m));
+  const [sh, sm] = venue.start.split(':');
+  const start = shift(sh, sm);
+  if (outOfDay) return { ok: false, message: crosses };
+  return { ok: true, venue: { ...venue, reception, start, schedule } };
+}
+
+export function buildFields(
+  file: VenueFile,
+  venueName: string,
+  date: string,
+  mail: string,
+  receptionTime: string | null = null,
+): FormValues {
+  const template = file.venues.find((v) => v.name === venueName);
+  if (!template) throw new Error(`会場「${venueName}」のひな形がありません`);
+  let venue = template;
+  if (receptionTime) {
+    const moved = shiftVenue(template, receptionTime);
+    if (!moved.ok) throw new Error(moved.message);
+    venue = moved.venue;
+  }
   const { common } = file;
   const event = dateTime(date, 0);
   const reception = dateTime(date, toMinutes(venue.reception));
