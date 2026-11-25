@@ -1,7 +1,5 @@
-import type { ScheduleEvent } from '../shared/events.ts';
+import { receptionStart, type ScheduleEvent } from '../shared/events.ts';
 
-/** 受付は開始の何分前からか */
-export const RECEPTION_MINUTES_BEFORE = 20;
 /** 参加表明は開催日の何日前の何時（JST）から始まるか */
 export const ENTRY_OPENS_DAYS_BEFORE = 14;
 export const ENTRY_OPENS_HOUR = 20;
@@ -15,11 +13,7 @@ export type EntryStatus = { kind: 'upcoming'; opensAt: Date } | { kind: 'open' }
 
 /** 受付時刻: 開始の20分前〜開始（'10:30' → '10:10〜10:30'） */
 export function receptionWindow(start: string): string {
-  const [h, m] = start.split(':').map(Number);
-  const day = 24 * 60;
-  const open = (((h * 60 + m - RECEPTION_MINUTES_BEFORE) % day) + day) % day;
-  const hhmm = `${pad(Math.floor(open / 60))}:${pad(open % 60)}`;
-  return `${hhmm}〜${start}`;
+  return `${receptionStart(start)}〜${start}`;
 }
 
 /** 月ごとにまとめる。月・大会とも日付順、同日は開始時刻順 */
@@ -65,8 +59,4 @@ export function sameEvents(a: ScheduleEvent[], b: ScheduleEvent[]): boolean {
 /** JST の日時を Date にする（日のはみ出しは Date.UTC が前月・翌月に繰り越す） */
 function jstDate(year: number, month: number, day: number, hour: number, minute: number): Date {
   return new Date(Date.UTC(year, month - 1, day, hour, minute) - JST_OFFSET_MS);
-}
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0');
 }
