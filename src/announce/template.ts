@@ -7,11 +7,12 @@ export const HEIGHT = 675;
 export const FONT_JP = 'Noto Sans JP';
 export const FONT_DIGITS = 'Oswald';
 
-/** 曜日の四角の色。サイトのマーカーの色分け（土＝青、日＝赤、祝日＝黄）を、写真の上で読める濃さにしたもの */
-export const DAY_COLORS: Record<Exclude<DayKind, 'weekday'>, { box: string; text: string }> = {
+/** 曜日の四角の色。今の告知画像と同じく 土＝青、日＝赤、祝日・平日＝黄 */
+export const DAY_COLORS: Record<DayKind, { box: string; text: string }> = {
   sunday: { box: '#dc2626', text: '#ffffff' },
   saturday: { box: '#2563eb', text: '#ffffff' },
   holiday: { box: '#facc15', text: '#111111' },
+  weekday: { box: '#facc15', text: '#111111' },
 };
 
 /** 元画像（1655×988）を横 1200 に縮めた高さと、上へずらす量 */
@@ -45,10 +46,8 @@ export function announceSvg(t: AnnounceText, background: string): string {
   const titleSize = Math.min(TITLE_SIZE, Math.floor(TITLE_MAX_WIDTH / textEm(t.title)));
 
   const day =
-    t.dayKind === 'weekday'
-      ? `<text x="${boxX}" y="${DATE_BASELINE - 8}" font-family="${FONT_JP}" font-size="40" fill="#ffffff">${esc(t.weekday)}</text>`
-      : `<rect id="day-box" x="${boxX}" y="${boxY}" width="${boxSize}" height="${boxSize}" fill="${DAY_COLORS[t.dayKind].box}"/>` +
-        `<text x="${boxX + boxSize / 2}" y="${boxY + boxSize / 2 + 14}" text-anchor="middle" font-family="${FONT_JP}" font-size="38" fill="${DAY_COLORS[t.dayKind].text}">${esc(t.weekday)}</text>`;
+    `<rect id="day-box" x="${boxX}" y="${boxY}" width="${boxSize}" height="${boxSize}" fill="${DAY_COLORS[t.dayKind].box}"/>` +
+    `<text x="${boxX + boxSize / 2}" y="${boxY + boxSize / 2 + 14}" text-anchor="middle" font-family="${FONT_JP}" font-size="38" fill="${DAY_COLORS[t.dayKind].text}">${esc(t.weekday)}</text>`;
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">`,

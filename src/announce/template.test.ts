@@ -30,9 +30,10 @@ describe('announceSvg', () => {
     expect(announceSvg({ ...base, dayKind: 'holiday', weekday: '火' }, '')).toContain(`fill="${DAY_COLORS.holiday.box}"`);
   });
 
-  it('平日は曜日の四角を描かない', () => {
-    expect(announceSvg({ ...base, dayKind: 'weekday', weekday: '木' }, '')).not.toContain('id="day-box"');
-    expect(announceSvg(base, '')).toContain('id="day-box"');
+  it('平日も祝日と同じ黄色の四角にする（今の告知画像と同じ）', () => {
+    const svg = announceSvg({ ...base, dayKind: 'weekday', weekday: '木' }, '');
+    expect(svg).toContain('id="day-box"');
+    expect(svg).toContain(`fill="${DAY_COLORS.holiday.box}"`);
   });
 
   it('タイトルの & や < をエスケープする', () => {
