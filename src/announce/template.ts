@@ -20,10 +20,13 @@ const BG_Y = -20;
 
 const LEFT = 50;
 const DATE_BASELINE = 540;
-const DATE_SIZE = 124;
-const RECEPTION_SIZE = 62;
-const TITLE_BASELINE = 628;
-const TITLE_SIZE = 46;
+const DATE_SIZE = 130;
+/** 日付は横に詰める（参考画像に合わせて横 0.84 倍・字間 -3） */
+const DATE_SCALE_X = 0.84;
+const DATE_SPACING = -3;
+const RECEPTION_SIZE = 70;
+const TITLE_BASELINE = 624;
+const TITLE_SIZE = 52;
 const TITLE_MAX_WIDTH = WIDTH - LEFT * 2;
 
 /** Oswald Bold の文字幅（1000 = 1em） */
@@ -33,12 +36,12 @@ const DIGIT_ADVANCE: Record<string, number> = {
 
 /** 告知画像の SVG。background は背景画像の href（data URI など） */
 export function announceSvg(t: AnnounceText, background: string): string {
-  const dateWidth = digitsWidth(t.date, DATE_SIZE);
-  const boxSize = 56;
+  const dateWidth = (digitsWidth(t.date, DATE_SIZE) + DATE_SPACING * [...t.date].length) * DATE_SCALE_X;
+  const boxSize = 60;
   const boxX = LEFT + dateWidth + 18;
   const boxY = DATE_BASELINE - boxSize;
   const receptionLabelX = boxX + boxSize + 22;
-  const receptionX = receptionLabelX + 54;
+  const receptionX = receptionLabelX + 62;
   const titleSize = Math.min(TITLE_SIZE, Math.floor(TITLE_MAX_WIDTH / textEm(t.title)));
 
   const day =
@@ -57,9 +60,9 @@ export function announceSvg(t: AnnounceText, background: string): string {
     `<rect width="${WIDTH}" height="${HEIGHT}" fill="#ffffff"/>`,
     `<image x="0" y="${BG_Y}" width="${WIDTH}" height="${BG_HEIGHT}" preserveAspectRatio="none" href="${esc(background)}" xlink:href="${esc(background)}"/>`,
     `<rect y="330" width="${WIDTH}" height="${HEIGHT - 330}" fill="url(#shade)"/>`,
-    `<text x="${LEFT}" y="${DATE_BASELINE}" font-family="${FONT_DIGITS}" font-size="${DATE_SIZE}" fill="#ffffff">${esc(t.date)}</text>`,
+    `<text transform="translate(${LEFT} ${DATE_BASELINE}) scale(${DATE_SCALE_X} 1)" letter-spacing="${DATE_SPACING}" font-family="${FONT_DIGITS}" font-size="${DATE_SIZE}" fill="#ffffff">${esc(t.date)}</text>`,
     day,
-    `<text x="${receptionLabelX}" y="${DATE_BASELINE - 2}" font-family="${FONT_JP}" font-size="24" fill="#ffffff">受付</text>`,
+    `<text x="${receptionLabelX}" y="${DATE_BASELINE - 2}" font-family="${FONT_JP}" font-size="27" fill="#ffffff">受付</text>`,
     `<text x="${receptionX}" y="${DATE_BASELINE}" font-family="${FONT_DIGITS}" font-size="${RECEPTION_SIZE}" fill="#ffffff">${esc(t.reception)}</text>`,
     `<text id="title" x="${LEFT}" y="${TITLE_BASELINE}" font-family="${FONT_JP}" font-size="${titleSize}" fill="#ffffff">${esc(t.title)}</text>`,
     '</svg>',
