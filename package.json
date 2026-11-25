@@ -10,9 +10,11 @@
     "test": "vitest run",
     "fetch-schedule": "node src/schedule/fetch.ts",
     "export-csv": "node src/schedule/export-csv.ts",
-    "apply": "node src/apply/apply.ts"
+    "apply": "node src/apply/apply.ts",
+    "announce": "node src/announce/render.ts"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.20.4",
     "playwright": "^1.65.1",
     "typescript": "^7.0.2",

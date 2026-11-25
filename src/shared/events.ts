@@ -41,3 +41,14 @@ export function mergeEventLists(...lists: ScheduleEvent[][]): ScheduleEvent[] {
   for (const list of lists) for (const e of list) byUrl.set(e.url, e);
   return [...byUrl.values()].sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
 }
+
+/** 受付は開始の何分前からか */
+export const RECEPTION_MINUTES_BEFORE = 20;
+
+/** 受付の開始時刻: 開始の20分前（'10:30' → '10:10'）。日をまたいでも 0:00〜23:59 に収める */
+export function receptionStart(start: string): string {
+  const [h, m] = start.split(':').map(Number);
+  const day = 24 * 60;
+  const open = (((h * 60 + m - RECEPTION_MINUTES_BEFORE) % day) + day) % day;
+  return `${String(Math.floor(open / 60)).padStart(2, '0')}:${String(open % 60).padStart(2, '0')}`;
+}
