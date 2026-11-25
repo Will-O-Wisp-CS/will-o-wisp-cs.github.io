@@ -72,9 +72,20 @@ function digitsWidth(s: string, size: number): number {
   return ([...s].reduce((sum, c) => sum + (DIGIT_ADVANCE[c] ?? 500), 0) * size) / 1000;
 }
 
-/** 幅の見積もり（em）: 全角 1、半角 0.6 */
+/** Noto Sans JP ExtraBold の ASCII（' '〜'~'）の文字幅（1000 = 1em） */
+const ASCII_ADVANCE = [
+  228, 384, 603, 599, 599, 974, 756, 338, 389, 389, 518, 599, 338, 377, 338, 386, 599, 599, 599, 599, 599, 599, 599, 599,
+  599, 599, 338, 338, 599, 599, 599, 525, 1024, 651, 688, 662, 722, 623, 595, 725, 766, 340, 577, 697, 588, 865, 757, 778,
+  677, 778, 695, 631, 633, 755, 631, 925, 642, 594, 616, 389, 386, 389, 599, 570, 631, 598, 651, 532, 651, 588, 385, 607,
+  649, 313, 314, 619, 323, 974, 649, 631, 651, 651, 450, 502, 433, 646, 591, 880, 580, 589, 522, 389, 304, 389, 599,
+];
+
+/** 幅の見積もり（em）: ASCII はフォントの字幅、それ以外（漢字・かな・全角記号）は 1 */
 function textEm(s: string): number {
-  return [...s].reduce((sum, c) => sum + (c.charCodeAt(0) < 0x2000 ? 0.6 : 1), 0);
+  return [...s].reduce((sum, c) => {
+    const code = c.charCodeAt(0);
+    return sum + (code >= 0x20 && code <= 0x7e ? ASCII_ADVANCE[code - 0x20] / 1000 : 1);
+  }, 0);
 }
 
 function esc(s: string): string {

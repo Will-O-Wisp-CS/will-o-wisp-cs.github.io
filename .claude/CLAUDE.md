@@ -105,7 +105,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - X 投稿用の 1200×675。背景のキービジュアルの左下に「日付・曜日の四角・受付 HH:MM~」と「鬼火CS in ○○」。曜日の四角は 土＝青 / 日＝赤 / 祝日・平日＝黄（今までの画像に合わせた）
 - 受付は開始の20分前（`shared/events.ts` の `receptionStart`）。ファイル名の時刻は開始時刻（`2026-11-29_1220_フルコンプ千葉店.png`）
 - `@resvg/resvg-js` でブラウザなしに描く。フォントは `assets/fonts` のものだけ使う（可変フォントは太さが効かないので固定の太さに変換したもの。作り方は README.txt）
-- 画像は `main` にコミットしない。クラウドのセッションではスキルが作業ブランチに `git add -f` して push し、raw.githubusercontent.com のリンクで渡す
+- 画像は `main` にコミットしない。クラウドのセッションではスキルが毎回画像専用の新しいブランチ（`claude/announce-<月>-<時刻>`）に `git add -f` して push し、raw.githubusercontent.com のリンクで渡す
 
 ### 自動申請（詳細は docs/superpowers/specs/2026-11-17-dmp-apply-design.md）
 - `.github/workflows/apply.yml`（「大会を申請」、手動実行のみ）で、6枠（A①〜C②。3アカウント×月2回）に会場と日付を指定して「公認CSサポートYYYY年M月開催申請」を出す。全部「なし」で実行すると状態の一覧だけ

@@ -20,12 +20,20 @@ description: 鬼火CSの大会ごとの告知画像（X 投稿用 1200×675 PNG�
    作ったファイルのパスが1行ずつ出る。「作る画像がありません」ならエラーではない（その月に大会がない・もう終わった）。そのまま伝える。
 4. **見て確かめる。** できた PNG を1枚以上開き、文字が欠けたり四角（豆腐）になったりしていないか見る。
 5. **渡す。**
-   - 今のブランチを `git branch --show-current` で確かめる。**`main` なら止めて** `git switch -c claude/announce-<月>` で新しいブランチを切る。画像は `main` に入れない
-   - `git add -f src/announce/out/<YYYY-MM>/<作ったファイル>`（`out/` は .gitignore に入っているので `-f` が要る）
-   - `git commit -m "chore: add announce images for <YYYY-MM>"` → `git push -u origin <ブランチ>`
+   - 画像は**毎回、画像を渡すためだけの新しいブランチ**に入れる。今のブランチ（`main` でも、ほかの作業のブランチでも）には入れない。作業中のブランチに入れると、その PR のマージで画像が `main` に混ざるため
+     ```bash
+     back=$(git branch --show-current)
+     img=claude/announce-<YYYY-MM>-$(date +%Y%m%d%H%M%S)   # 前回のブランチと名前がぶつからないよう時刻を付ける
+     git switch -c "$img"
+     git add -f src/announce/out/<YYYY-MM>/<作ったファイル>   # out/ は .gitignore に入っているので -f が要る
+     git commit -m "chore: add announce images for <YYYY-MM>"
+     git push -u origin "$img"
+     git switch "$back"
+     ```
+   - push が権限で断られたら（クラウドの設定で決まったブランチにしか push できない場合など）、勝手に別の方法を試さず、断られたことをそのまま伝える
    - 次の形のリンクを、日付・開催地と一緒に一覧で出す。ファイル名の日本語は URL エンコードする（`encodeURIComponent`）
      ```
-     https://raw.githubusercontent.com/Will-O-Wisp-CS/will-o-wisp-cs.github.io/<ブランチ>/src/announce/out/<YYYY-MM>/<ファイル名>
+     https://raw.githubusercontent.com/Will-O-Wisp-CS/will-o-wisp-cs.github.io/<画像のブランチ>/src/announce/out/<YYYY-MM>/<ファイル名>
      ```
    - 「リンクを開いて長押しで保存できます」と添える
    - このブランチは画像を渡すためだけのもの。**PR を作らない・マージしない**

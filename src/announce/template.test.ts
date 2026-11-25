@@ -44,4 +44,12 @@ describe('announceSvg', () => {
     const long = '鬼火CS in 竜星のPAO秋葉原ロケット無線店'.repeat(2);
     expect(titleSize(announceSvg({ ...base, title: long }, ''))).toBeLessThan(titleSize(announceSvg(base, '')));
   });
+
+  it('英大文字の長い開催地名も幅 1100px に収める（W は Noto Sans JP ExtraBold で 0.925em）', () => {
+    const title = `鬼火CS in ${'W'.repeat(34)}`;
+    const size = titleSize(announceSvg({ ...base, title }, ''));
+    // 鬼火 2em + 'CS in ' + W×34 を実際の字幅で見積もる
+    const em = 2 + (662 + 631 + 228 + 313 + 649 + 228) / 1000 + 34 * 0.925;
+    expect(size * em).toBeLessThanOrEqual(1100);
+  });
 });
