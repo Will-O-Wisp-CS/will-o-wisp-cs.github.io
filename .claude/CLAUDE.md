@@ -29,7 +29,7 @@ npm run apply   # 公認CSサポートの申請（Node 専用。普段は GitHub
 ## フォルダ構成
 
 ```
-.claude/     CLAUDE.md（このファイル）、launch.json（開発サーバー設定。git 管理外）、skills/cs-schedule-csv（月別大会一覧 CSV のスキル）
+.claude/     CLAUDE.md（このファイル）、launch.json（開発サーバー設定。git 管理外）、skills/cs-schedule-csv（月別大会一覧 CSV のスキル）、skills/sugatool-cover（スガツールのカバー画像のスキル。背景 background.png と cover.ts）
 .github/     GitHub Actions（Pages デプロイ）
 docs/superpowers/specs, plans   設計書と実装計画
 src/         Vite の root。HTML・ソース・テストはすべてここ
@@ -107,3 +107,7 @@ src/         Vite の root。HTML・ソース・テストはすべてここ
 - 参加表明・デッキ提出の開始＝開催日14日前 20:00、参加表明締切＝受付開始の10分前、デッキ提出締切＝開催日 23:59。ジャッジは毎回 06012
 - 会場を足すときは `venues.json` と `apply.yml` の6つの会場の選択肢をそろえる（ずれるとテストが落ちる）
 - アカウントの空き枠が足りない・保存のみ（未申請）の開催がある月は、勝手に選ばずそのアカウントの指定をすべて飛ばす
+
+### スガツールのカバー画像
+- 「カバー画像」「スガツール画像」と言われたら `.claude/skills/sugatool-cover` のスキルで作る。デザインを新しく考えない
+- 1200×675。背景は `background.png`、左下に 日付（M/D）・曜日バッジ（土＝青 / 日・祝＝赤 / 平日＝灰）・「受付 H:MM~」（開始の20分前）・「鬼火CS in ○○」
